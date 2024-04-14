@@ -1,5 +1,16 @@
 # Frontend
 
+### Docker
+1. Build
+```shell
+docker build -t frontend .
+```
+2. Run
+```shell
+docker run -it -p 8080:8080 --rm --name frontend-app-local frontend
+```
+
+
 ### Project setup
 ```
 npm install
