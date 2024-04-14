@@ -1,9 +1,15 @@
 # Production Programming Project
 
 ### How to run?
-1. ...
-2. ...
-3. ...
+- Run in console
+```shell
+docker-compose up -d
+```
+
+- Stop docker-compose
+```shell
+docker-compose stop
+```
 
 ### Links
 Project:
@@ -11,5 +17,5 @@ Project:
 - [Backend](backend/README.md)
 
 Other:
-- [Lectures](https://disk.yandex.ru/d/QMv6kmwEguU2mg)
-- [Commands](https://disk.yandex.ru/i/epA9UQD34YkQJA)
+- [Lectures YaDisk](https://disk.yandex.ru/d/QMv6kmwEguU2mg)
+- [Commands YaDisk](https://disk.yandex.ru/i/epA9UQD34YkQJA)
