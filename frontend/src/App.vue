@@ -1,5 +1,7 @@
 <template>
-  <HelloWorld msg="Welcome to Your Vue.js App"/>
+  <div class="container">
+    <HelloWorld msg="Welcome to Your Vue.js App"/>
+  </div>
 </template>
 
 <script>
@@ -20,6 +22,13 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
+  margin: 0;
+}
+body {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+.container {
+  margin: 0 8px;
 }
 </style>

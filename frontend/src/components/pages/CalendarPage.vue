@@ -1,85 +1,69 @@
 <template>
   <div class="calendar">
-    <h4>Current Date: {{currentDate.getDate()}}</h4>
-    <h4>Current Month: {{getMonthName(currentDate.getMonth())}}</h4>
-    <div class="calendar-body" v-if="loaded">
-      <CalendarDay
-          v-for="day in calendar"
-          :key="day"
-          :day="day"
-      ></CalendarDay>
+    <div class="calendar-header">
+      <h4>Current Date: {{currentDate.getDate()}}</h4>
+      <h4>Current Month: {{getMonthName(currentDate.getMonth())}}</h4>
+      <h4>Current Year: {{currentDate.getFullYear()}}</h4>
+    </div>
+    <div class="flex">
+      <div class="calendar-body" v-if="loaded">
+        <CalendarDay
+            v-for="(day, index) in calendar"
+            :key="index"
+            :day="day"
+            @click="onSelectDay(day)"
+        ></CalendarDay>
+      </div>
+      <NoteSidebar></NoteSidebar>
     </div>
   </div>
 </template>
 
 <script>
 import CalendarDay from "@/components/components/CalendarDay.vue";
-
-export const MONTH_JANUARY = "Январь";
-export const MONTH_FEBRUARY = "Февраль";
-export const MONTH_MARCH = "Март";
-export const MONTH_APRIL = "Апрель";
-export const MONTH_MAY = "Май";
-export const MONTH_JUNE = "Июнь";
-export const MONTH_JULY = "Июль";
-export const MONTH_AUGUST = "Август";
-export const MONTH_SEPTEMBER = "Сентябрь";
-export const MONTH_OCTOBER = "Октябрь";
-export const MONTH_NOVEMBER = "Ноябрь";
-export const MONTH_DECEMBER = "Декабрь";
-
-export const MONTH_TYPE_PREVIOUS = "month-previous"
-export const MONTH_TYPE_CURRENT = "month-current"
-export const MONTH_TYPE_NEXT = "month-next"
-
-export const DAY_TYPE_PASSED = "day-passed"
-export const DAY_TYPE_CURRENT = "day-current"
-export const DAY_TYPE_FUTURE = "day-future"
+import NoteSidebar from "@/components/components/NoteSidebar.vue";
+import { dayTypes, monthNames, monthTypes } from "@/components/js/types";
 
 export default {
   name: 'CalendarPage',
-  components: {CalendarDay},
+  components: {NoteSidebar, CalendarDay},
   props: {
     msg: String,
   },
   methods: {
+    onSelectDay(day) {
+      if (day.monthType === monthTypes.MONTH_TYPE_CURRENT) {
+        this.selectedDay = day;
+      } else {
+        console.log('wrong month')
+      }
+    },
     getDaysInMonth(year, month) {
       return new Date(year, month + 1, 0).getDate();
     },
     initDays(currentDate, from, to) {
       const calendar = [];
-      const daysInMonth = this.getDaysInMonth(currentDate.getFullYear(), currentDate.getMonth());
-      const prevMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0)
-      const lastDayOfPrevMonth = prevMonth.getDate();
-      const nextMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1)
 
-      for (let day = from.getDate(); day <= lastDayOfPrevMonth; ++day) {
+      let date = from
+      while (date < to) {
+        const curDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+        const monthType = date.getMonth() === currentDate.getMonth()
+            ? monthTypes.MONTH_TYPE_CURRENT
+            : date.getMonth() > currentDate.getMonth()
+                ? monthTypes.MONTH_TYPE_NEXT
+                : monthTypes.MONTH_TYPE_PREVIOUS
+        const dayType = date.getDate() === currentDate.getDate() && monthType === monthTypes.MONTH_TYPE_CURRENT
+            ? dayTypes.DAY_TYPE_CURRENT
+            : date.getDate() > currentDate.getDate() && monthType !== monthTypes.MONTH_TYPE_PREVIOUS
+              || monthType === monthTypes.MONTH_TYPE_NEXT
+                ? dayTypes.DAY_TYPE_FUTURE
+                : dayTypes.DAY_TYPE_PASSED;
         calendar.push({
-          currentDate: new Date(prevMonth.getFullYear(), prevMonth.getMonth(), day),
-          monthType: MONTH_TYPE_PREVIOUS,
-          dayType: DAY_TYPE_PASSED
+          currentDate: curDate,
+          monthType: monthType,
+          dayType: dayType,
         })
-      }
-
-      for (let day = 1; day <= daysInMonth; ++day) {
-        const dayType = day === currentDate.getDate()
-            ? DAY_TYPE_CURRENT
-            : day > currentDate.getDate()
-                ? DAY_TYPE_FUTURE
-                : DAY_TYPE_PASSED
-        calendar.push({
-          currentDate: new Date(currentDate.getFullYear(), currentDate.getMonth(), day),
-          monthType: MONTH_TYPE_CURRENT,
-          dayType: dayType
-        })
-      }
-
-      for (let day = nextMonth.getDate(); day < to.getDate(); ++day) {
-        calendar.push({
-          currentDate: new Date(nextMonth.getFullYear(), nextMonth.getMonth(), day),
-          monthType: MONTH_TYPE_NEXT,
-          dayType: DAY_TYPE_FUTURE
-        })
+        date.setDate(date.getDate() + 1)
       }
 
       return calendar
@@ -94,22 +78,22 @@ export default {
       const startDate = new Date(date.getFullYear(), date.getMonth() + 1, 1)
       const daysToNextMonday = 7 - (startDate.getDay() + 6) % 7;
 
-      return new Date(date.getFullYear(), date.getMonth(), startDate.getDate() + daysToNextMonday)
+      return new Date(date.getFullYear(), date.getMonth() + 1, startDate.getDate() + daysToNextMonday)
     },
     getMonthName(month) {
       return [
-        MONTH_JANUARY,
-        MONTH_FEBRUARY,
-        MONTH_MARCH,
-        MONTH_APRIL,
-        MONTH_MAY,
-        MONTH_JUNE,
-        MONTH_JULY,
-        MONTH_AUGUST,
-        MONTH_SEPTEMBER,
-        MONTH_OCTOBER,
-        MONTH_NOVEMBER,
-        MONTH_DECEMBER,
+        monthNames.MONTH_JANUARY,
+        monthNames.MONTH_FEBRUARY,
+        monthNames.MONTH_MARCH,
+        monthNames.MONTH_APRIL,
+        monthNames.MONTH_MAY,
+        monthNames.MONTH_JUNE,
+        monthNames.MONTH_JULY,
+        monthNames.MONTH_AUGUST,
+        monthNames.MONTH_SEPTEMBER,
+        monthNames.MONTH_OCTOBER,
+        monthNames.MONTH_NOVEMBER,
+        monthNames.MONTH_DECEMBER,
       ][month];
     },
 
@@ -120,6 +104,7 @@ export default {
       seconds: 0,
       loaded: false,
       calendar: [],
+      selectedDay: null,
     }
   },
   mounted() {
@@ -138,9 +123,21 @@ export default {
 </script>
 
 <style scoped>
+.calendar {
+  height: 100vh;
+}
+.calendar-header {
+  padding-top: 80px;
+}
 .calendar-body {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 8px;
+  width: fit-content;
+  height: fit-content;
+}
+.flex {
+  display: flex;
+  gap: 16px;
 }
 </style>
