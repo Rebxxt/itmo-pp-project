@@ -5,8 +5,11 @@
       :class="[day.monthType, day.dayType, {
         'day-selected': isSelected,
       }]"
+      @drop.prevent="onDrop"
+      @dragenter.prevent
+      @dragover.prevent
   >
-    <h3>{{ day.currentDate.getDate() }}</h3>
+    <h3>{{ day.date.getDate() }}</h3>
     <p>{{getDayName}}</p>
   </div>
 </template>
@@ -17,7 +20,7 @@ export default {
   props: {
     id: Number,
     day: {
-      currentDate: Date,
+      date: Date,
       monthType: String,
       dayType: String,
     },
@@ -25,13 +28,19 @@ export default {
   },
   computed: {
     getDayName() {
-      return this.day.currentDate.toLocaleString('ru', {weekday: 'long'})
+      return this.day.date.toLocaleString('ru', {weekday: 'long'})
     },
     isSelected() {
       return this.$parent.selectedDay === this.day;
-    }
+    },
   },
   methods: {
+    onDrop() {
+      console.log('on drop', this.$store.state.selectedNote, this.day)
+      const noteResult = this.$store.state.selectedNote;
+      noteResult.createdAt.setDate(this.day.date.getDate())
+      this.$store.commit('onChangeNote', noteResult)
+    }
   },
 }
 </script>

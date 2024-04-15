@@ -5,13 +5,17 @@ import App from './App.vue'
 const store = createStore({
     state() {
         return {
-            count: 0
+            selectedNote: null,
+            noteChanges: null,
         }
     },
     mutations: {
-        increment(state) {
-            state.count++
-        }
+        onSelectedNote(state, note) {
+            state.selectedNote = note;
+        },
+        onChangeNote(state, note) {
+            state.noteChanges = note;
+        },
     }
 })
 

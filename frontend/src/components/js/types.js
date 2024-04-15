@@ -45,3 +45,5 @@ export const dayTypes = {
     DAY_TYPE_CURRENT,
     DAY_TYPE_FUTURE,
 }
+
+export const MIN_NOTE_LENGTH = 5;
