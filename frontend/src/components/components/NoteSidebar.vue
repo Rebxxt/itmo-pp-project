@@ -10,6 +10,7 @@
             :draggable="true"
             @dragstart="startDrag($event, note)"
             @dragend="endDrag"
+            @click="onClickNote(note)"
             class="note"
             v-for="(note, index) in filteredNotes"
             :key="index"
@@ -29,7 +30,7 @@
 
 <script>
 import NoteCreator from "@/components/components/NoteCreator.vue";
-import {uuid} from "vue-uuid";
+import {initNotes} from "@/components/js/mock";
 
 export default {
   name: 'NoteSidebar',
@@ -43,16 +44,26 @@ export default {
     addNote(note) {
       if (this.selectedDay) {
         note.createdAt.setDate(this.selectedDay.date.getDate());
+        note.createdAt.setMonth(this.selectedDay.date.getMonth());
+        note.createdAt.setYear(this.selectedDay.date.getFullYear());
       }
-      this.notes.push(note)
+      this.notes.push(note);
+      this.setNotes(this.notes);
+    },
+    onClickNote(note) {
+      console.log('clicked on note:', note)
     },
     startDrag(e, note) {
       this.selectedNoteToDrag = note;
-      this.$store.commit('onSelectedNote', note)
+      this.$store.commit('onSelectedNote', this.selectedNoteToDrag)
     },
     endDrag() {
       this.selectedNoteToDrag = null;
-      this.$store.commit('onSelectedNote', null)
+      this.$store.commit('onSelectedNote', this.selectedNoteToDrag)
+    },
+    setNotes(notes) {
+      this.notes = [...notes];
+      this.$store.commit('setNotes', this.notes)
     }
   },
   computed: {
@@ -60,8 +71,10 @@ export default {
       const reversed = [...this.notes]
       reversed.sort((a, b) => b.createdAt-a.createdAt)
       if (this.selectedDay) {
-        console.log(this.selectedDay.date, reversed)
-        return reversed.filter(v => v.createdAt.getDate() === this.selectedDay.date.getDate())
+        return reversed.filter(v => (
+            v.createdAt.getDate() === this.selectedDay.date.getDate() &&
+            v.createdAt.getMonth() === this.selectedDay.date.getMonth()
+        ))
       }
       return reversed
     },
@@ -73,40 +86,19 @@ export default {
     noteChanges(newNote) {
       if (newNote) {
         const note = this.notes.find(v => v.id === newNote.id)
-        console.log('note', note)
         Object.assign(note, newNote)
-        console.log(this.notes)
-        this.notes = [...this.notes]
+        this.setNotes(this.notes)
         this.$store.commit('onChangeNote', null)
       }
     }
   },
+  created() {
+    this.setNotes(initNotes)
+  },
   data() {
-    const currentDate = new Date()
     return {
       selectedNoteToDrag: null,
-      notes: [{
-        id: uuid.v4(),
-        text: 'Note about family',
-        createdAt: new Date(currentDate.getFullYear(), currentDate.getMonth(), 1, currentDate.getHours(), currentDate.getMinutes()),
-      },{
-        id: uuid.v4(),
-        text: 'Note about animals',
-        createdAt: new Date(currentDate.getFullYear(), currentDate.getMonth(), 3, currentDate.getHours() - 10, currentDate.getMinutes() - 23),
-      },{
-        id: uuid.v4(),
-        text: 'Note about work',
-        createdAt: new Date(currentDate.getFullYear(), currentDate.getMonth(), 5, currentDate.getHours(), currentDate.getMinutes() - 20),
-      },{
-        id: uuid.v4(),
-        text: 'Note about university',
-        createdAt: new Date(currentDate.getFullYear(), currentDate.getMonth(), 8, currentDate.getHours(), currentDate.getMinutes() - 43),
-      },{
-        id: uuid.v4(),
-        text: 'jsfklda ljkfsda lkjjklfsad jklfsda jklkljsfad jlkf dsaljkjfklsda ljkf dasjlkf sadljkf sdljakjklaf sdlkjfasd ljksf adljkjklfs adjklf sad',
-        createdAt: new Date(currentDate.getFullYear(), currentDate.getMonth(), 8, currentDate.getHours(), currentDate.getMinutes() - 43),
-      },
-      ]
+      notes: []
     }
   }
 }
@@ -135,6 +127,8 @@ export default {
   gap: 12px;
 
   box-shadow: rgba(0, 0, 0, 0.1) 2px 4px 6px;
+
+  cursor: pointer;
 }
 .note span:last-child {
   flex-shrink: 0;

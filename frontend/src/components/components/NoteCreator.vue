@@ -21,6 +21,11 @@ export default {
       text: ''
     }
   },
+  computed: {
+    selectedDay() {
+      return this.$store.state.selectedDay
+    }
+  },
   methods: {
     onCreate() {
       if (this.text.length < MIN_NOTE_LENGTH) {
@@ -30,7 +35,7 @@ export default {
       const note = {
         id: uuid.v4(), // TODO: remove after connect backend
         text: this.text,
-        createdAt: new Date(),
+        createdAt: (new Date(this.selectedDay?.date ?? new Date())),
       }
       this.text = '';
       this.$emit('onCreateNote', note)

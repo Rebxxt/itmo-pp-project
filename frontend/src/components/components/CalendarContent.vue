@@ -8,8 +8,22 @@
           @click="onSelectDay(day)"
       ></CalendarDay>
     </div>
+    <h4>{{
+        selectedMonth.toLocaleString('ru', {
+          year: "numeric",
+          month: "long",
+        })
+      }}</h4>
     <div class="buttons">
+      <div class="selector">
+        <button @click="onChangeYear(-1)">Прошлый год</button>
+        <button @click="onChangeMonth(-1)">Прошлый месяц</button>
+        <button @click="onChangeMonth(0)">Сегодняшний день</button>
+        <button @click="onChangeMonth(1)">Следующий месяц</button>
+        <button @click="onChangeYear(1)">Следующий год</button>
+      </div>
       <button @click="onSelectDay(null)">Сбросить выбранное</button>
+
     </div>
   </div>
 </template>
@@ -17,12 +31,14 @@
 <script>
 import CalendarDay from "@/components/components/CalendarDay.vue";
 import {dayTypes, monthTypes} from "@/components/js/types";
+import {dateDiff, isSameDate} from "@/components/js/utils";
 
 export default {
   name: 'CalendarContent',
   components: {CalendarDay},
   data() {
     return {
+      selectedMonth: new Date(),
       currentDate: new Date(),
       seconds: 0,
       loaded: false,
@@ -32,32 +48,48 @@ export default {
   },
   methods: {
     onSelectDay(day) {
-      if (day === null) {
-        this.selectedDay = null;
-      } else if (day === this.selectedDay) {
-        this.selectedDay = null;
-      } else if (day.monthType === monthTypes.MONTH_TYPE_CURRENT) {
+      if (day && day.date.getMonth() !== this.selectedMonth.getMonth()) {
+        let step = 0;
+        if (
+            day.date.getMonth() > this.selectedMonth.getMonth() &&
+            day.date.getFullYear() === this.selectedMonth.getFullYear() ||
+            day.date.getFullYear() > this.selectedMonth.getFullYear()
+        ) {
+          step = 1;
+        } else {
+          step = -1;
+        }
+        this.onChangeMonth(step)
         this.selectedDay = day;
-      } else {
-        this.selectedDay = null;
-        console.log('wrong month')
+        this.$store.commit('onSelectDay', this.selectedDay)
+        return
       }
-      this.$emit('selectDay', this.selectedDay)
+      if (!day) {
+        this.selectedDay = null;
+      } else if (day === this.selectedDay || this.selectedDay && day && isSameDate(day.date, this.selectedDay.date)) {
+        this.selectedDay = null;
+      } else {
+        this.selectedDay = day;
+      }
+      this.$store.commit('onSelectDay', this.selectedDay)
     },
-    initDays(date, from, to) {
+    initDays(today, from, to) {
       const calendar = [];
 
       let dateIndex = from
+      if (dateDiff(from, to) <= 7 * 5) {
+        to.setDate(to.getDate() + 7)
+      }
       while (dateIndex < to) {
         const curDate = new Date(dateIndex.getFullYear(), dateIndex.getMonth(), dateIndex.getDate());
-        const monthType = dateIndex.getMonth() === date.getMonth()
+        const monthType = dateIndex.getMonth() === today.getMonth() && dateIndex.getFullYear() === today.getFullYear()
             ? monthTypes.MONTH_TYPE_CURRENT
-            : dateIndex.getMonth() > date.getMonth()
+            : dateIndex.getMonth() > today.getMonth() && dateIndex.getFullYear() === today.getFullYear() || dateIndex.getFullYear() > today.getFullYear()
                 ? monthTypes.MONTH_TYPE_NEXT
                 : monthTypes.MONTH_TYPE_PREVIOUS
-        const dayType = dateIndex.getDate() === date.getDate() && monthType === monthTypes.MONTH_TYPE_CURRENT
+        const dayType = dateIndex.getDate() === today.getDate() && monthType === monthTypes.MONTH_TYPE_CURRENT
             ? dayTypes.DAY_TYPE_CURRENT
-            : dateIndex.getDate() > date.getDate() && monthType !== monthTypes.MONTH_TYPE_PREVIOUS
+            : dateIndex.getDate() > today.getDate() && monthType !== monthTypes.MONTH_TYPE_PREVIOUS
             || monthType === monthTypes.MONTH_TYPE_NEXT
                 ? dayTypes.DAY_TYPE_FUTURE
                 : dayTypes.DAY_TYPE_PASSED;
@@ -65,35 +97,78 @@ export default {
           date: curDate,
           monthType: monthType,
           dayType: dayType,
+          hasNotes: false,
         })
-        dateIndex.setDate(dateIndex.getDate() + 1)
+        dateIndex.setDate(dateIndex.getDate() + 1);
       }
+
+      this.selectedDay = null;
+      this.$store.commit('onSelectDay', this.selectedDay);
 
       return calendar
     },
     getDateFrom(date) {
-      const startDate = new Date(date.getFullYear(), date.getMonth(), 1)
+      const startDate = new Date(date.getFullYear(), date.getMonth(), 1);
       const daysToMonday = (startDate.getDay() + 6) % 7 || 7;
 
-      return new Date(date.getFullYear(), date.getMonth(), startDate.getDate() - daysToMonday)
+      return new Date(date.getFullYear(), date.getMonth(), startDate.getDate() - daysToMonday);
     },
     getDateTo(date) {
-      const startDate = new Date(date.getFullYear(), date.getMonth() + 1, 1)
+      const startDate = new Date(date.getFullYear(), date.getMonth() + 1, 1);
       const daysToNextMonday = 7 - (startDate.getDay() + 6) % 7;
 
-      return new Date(date.getFullYear(), date.getMonth() + 1, startDate.getDate() + daysToNextMonday)
+      return new Date(date.getFullYear(), date.getMonth() + 1, startDate.getDate() + daysToNextMonday);
     },
+    onChangeMonth(value) {
+      if (value === 0) {
+        this.selectedMonth = new Date(this.currentDate);
+      } else {
+        this.selectedMonth.setMonth(this.selectedMonth.getMonth() + value);
+      }
+      const from = this.getDateFrom(this.selectedMonth);
+      const to = this.getDateTo(this.selectedMonth);
+      this.setCalendar(this.initDays(this.currentDate, from, to));
+    },
+    onChangeYear(value) {
+      this.selectedMonth.setFullYear(this.selectedMonth.getFullYear() + value);
+      const from = this.getDateFrom(this.selectedMonth);
+      const to = this.getDateTo(this.selectedMonth);
+      this.setCalendar(this.initDays(this.currentDate, from, to));
+    },
+    setCalendar(calendar) {
+      this.calendar = calendar;
+      this.$store.commit('setCalendar', this.calendar);
+      this.updateNotesInfo()
+    },
+    updateNotesInfo() {
+      const notes = this.$store.state.notes
+      if (!notes?.length) return
+      const newNotes = notes.map(v => v.createdAt)
+      for (const day of this.calendar) {
+        const temp = newNotes.find(note => {
+          return isSameDate(note, day.date)
+        })
+        day.hasNotes = !!temp;
+      }
+    }
   },
   computed: {
     selectedNote() {
-      return this.$store.state.selectedNote
+      return this.$store.state.selectedNote;
+    },
+    notes() {
+      return this.$store.state.notes
+    }
+  },
+  watch: {
+    notes() {
+      this.updateNotesInfo()
     }
   },
   mounted() {
-    this.getDateFrom(this.currentDate)
-    const from = this.getDateFrom(this.currentDate)
-    const to = this.getDateTo(this.currentDate)
-    this.calendar = this.initDays(this.currentDate, from, to);
+    const from = this.getDateFrom(this.selectedMonth);
+    const to = this.getDateTo(this.selectedMonth);
+    this.setCalendar(this.initDays(this.selectedMonth, from, to));
 
     this.loaded = true;
   }
@@ -108,11 +183,13 @@ export default {
   width: fit-content;
   height: fit-content;
 }
+
 .calendar-content {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
+
 .buttons {
   display: flex;
   flex-direction: column;
