@@ -2,38 +2,25 @@ package com.calendar.storage.impl
 import com.calendar.model.{Note, NoteSource}
 import com.calendar.storage.NoteDao
 import doobie.implicits.toSqlInterpolator
-import io.github.gaelrenoux.tranzactio.DbException
-import io.github.gaelrenoux.tranzactio.doobie.tzio
-import io.github.gaelrenoux.tranzactio._
-import io.github.gaelrenoux.tranzactio.doobie._
-import zio.ZIO
+import doobie.free.connection.ConnectionIO
 
 object NoteDaoImpl extends NoteDao {
-  override def addNote(note: NoteSource): ZIO[Connection, DbException, Unit] = {
+  override def addNote(note: Note): ConnectionIO[Note] = {
     val text = note.text
     val userId = note.userId
     val date = note.date
-    tzio {
-      sql"insert into notes(text, user_id, date) values ($text, $userId, $date)".update.run
-        .map(_ => ())
-    }
+    val id = note.id
+    sql"insert into notes(id, text, user_id, date) values ($id, $text, $userId, $date)".update.run
+      .map(_ => note)
   }
-  override def getNote(): ZIO[Connection, DbException, Note] = {
-    tzio {
-      sql"select name, latitude, longitude from notes".query[Note].unique
-    }
+  override def getNote(noteId: String): ConnectionIO[Note] = {
+    sql"select id, text, user_id, date from notes where noteId = $noteId".query[Note].unique
   }
   override def getUserNotes(
-      userId: Long
-  ): ZIO[Connection, DbException, Seq[Note]] = {
-    tzio {
-      sql"select text, user_id, date from notes".query[Note].to[Seq]
-    }
-  }
+      userId: String
+  ): ConnectionIO[Seq[Note]] =
+    sql"select id, text, user_id, date from notes where user_id = $userId".query[Note].to[Seq] // :TODO fix
 
-  override def deleteNote(noteId: Long): ZIO[Connection, DbException, Unit] = {
-    tzio {
-      sql"delete from notes where id = $noteId".update.run.map(_ => ())
-    }
-  }
+  override def deleteNote(noteId: String): ConnectionIO[Unit] =
+    sql"delete from notes where id = $noteId".update.run.map(_ => ())
 }

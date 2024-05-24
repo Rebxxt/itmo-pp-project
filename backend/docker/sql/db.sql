@@ -2,15 +2,20 @@ create database calendar;
 \c calendar;
 
 create table notes (
-    id serial not null,
+    id text not null,
     text text not null,
     user_id bigint not null,
-    `date` bigint not null,
+    date bigint not null,
     primary key (id)
 );
 
 create table users (
-    id serial not null,
-    `name` text not null,
+    id text not null,
+    name text not null,
     primary key (id)
-)
+);
+
+create table auth (
+    id text not null,
+    hashed_password text not null
+);

@@ -3,15 +3,14 @@ package com.calendar.storage
 import com.calendar.model.{Note, NoteSource}
 import zio._
 import doobie.implicits._
-import io.github.gaelrenoux.tranzactio._
-import io.github.gaelrenoux.tranzactio.doobie._
 import com.calendar.storage.impl.NoteDaoImpl
+import doobie.free.connection.ConnectionIO
 
 trait NoteDao {
-  def addNote(note: NoteSource): ZIO[Connection, DbException, Unit]
-  def getNote(): ZIO[Connection, DbException, Note]
-  def getUserNotes(userId: Long): ZIO[Connection, DbException, Seq[Note]]
-  def deleteNote(noteId: Long): ZIO[Connection, DbException, Unit]
+  def addNote(note: Note): ConnectionIO[Note]
+  def getNote(noteId: String): ConnectionIO[Note]
+  def getUserNotes(userId: String): ConnectionIO[Seq[Note]]
+  def deleteNote(noteId: String): ConnectionIO[Unit]
 }
 
 object NoteDao {

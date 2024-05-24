@@ -1,44 +1,45 @@
 package com.calendar.service
 
+import com.calendar.UUID
 import com.calendar.model.{Note, NoteSource}
-import com.calendar.storage.NoteDao
-import io.github.gaelrenoux.tranzactio.DbException
-import io.github.gaelrenoux.tranzactio.doobie.Database
-import zio.{ZIO, ZLayer}
+import com.calendar.storage.impl.NoteDaoImpl
+import doobie.free.connection.ConnectionIO
+import doobie.util.transactor.Transactor
+import zio.interop.catz._
+import zio.{Task, ZIO, ZLayer}
 
-class NoteService(noteDao: NoteDao, database: Database) {
-  def getNote(): ZIO[Any, Either[DbException, DbException], Note] = {
-    Database
-      .transaction(noteDao.getNote())
-      .provideLayer(ZLayer.succeed(database))
-  }
+class NoteService(transactor: Transactor[Task]) {
+  implicit val tr: Transactor[Task] = transactor
+
+  def getNote(noteId: String): Task[Note] = runTransaction(
+    NoteDaoImpl.getNote(noteId)
+  )
 
   def addNote(
       noteSource: NoteSource
-  ): ZIO[Any, Either[DbException, DbException], Unit] = {
-    Database
-      .transaction(noteDao.addNote(noteSource))
-      .provideLayer(ZLayer.succeed(database))
+  ): ZIO[Any, Throwable, Note] = {
+    for {
+      id <- UUID.generateUUID
+      note <- runTransaction(
+        NoteDaoImpl.addNote(Note.fromNoteSource(noteSource, id))
+      )
+    } yield note
   }
 
   def getUserNotes(
-      userId: Long
-  ): ZIO[Any, Either[DbException, DbException], Seq[Note]] = {
-    Database
-      .transaction(noteDao.getUserNotes(userId))
-      .provideLayer(ZLayer.succeed(database))
+      userId: String
+  ): ZIO[Any, Throwable, Seq[Note]] = {
+    runTransaction(NoteDaoImpl.getUserNotes(userId))
   }
 
   def deleteNode(
-      noteId: Long
-  ): ZIO[Any, Either[DbException, DbException], Unit] = {
-    Database
-      .transaction(noteDao.deleteNote(noteId))
-      .provideLayer(ZLayer.succeed(database))
+      noteId: String
+  ): ZIO[Any, Throwable, Unit] = {
+    runTransaction(NoteDaoImpl.deleteNote(noteId))
   }
 }
 
 object NoteService {
-  def live: ZLayer[NoteDao with Database, Throwable, NoteService] =
-    ZLayer.fromFunction(new NoteService(_, _))
+  def live: ZLayer[Transactor[Task], Throwable, NoteService] =
+    ZLayer.fromFunction(new NoteService(_))
 }

@@ -1,33 +1,18 @@
 package com.calendar.api
 
 import calendar.calendar.ZioCalendar.Calendar
-import calendar.calendar.{
-  AddNoteRequest,
-  AddNoteResponse,
-  CreateUserRequest,
-  CreateUserResponse,
-  DeleteNoteRequest,
-  DeleteNoteResponse,
-  DeleteUserRequest,
-  DeleteUserResponse,
-  GetNoteRequest,
-  GetNoteResponse,
-  GetUserNotesRequest,
-  GetUserNotesResponse,
-  Note => NoteProto
-}
+import calendar.calendar._
 import com.calendar.Converter
-import com.calendar.model.{Note, NoteSource}
-import com.calendar.service.NoteService
-import com.calendar.storage.NoteDao
-import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
-import io.github.gaelrenoux.tranzactio.ConnectionSource
-import io.github.gaelrenoux.tranzactio.doobie.{Connection, Database}
+import com.calendar.model.{NoteSource, UserSource}
+import com.calendar.service.{AuthService, NoteService, UserService}
 import io.grpc.{Status, StatusException}
-import scalapb.zio_grpc.{ServerMain, ServiceList}
 import zio._
 
-class CalendarImpl(noteService: NoteService) extends Calendar {
+class CalendarImpl(
+    noteService: NoteService,
+    userService: UserService,
+    authService: AuthService
+) extends Calendar {
   override def createNote(
       request: AddNoteRequest
   ): IO[
@@ -48,14 +33,14 @@ class CalendarImpl(noteService: NoteService) extends Calendar {
   ): IO[
     StatusException,
     GetNoteResponse
-  ] = {
+  ] =
     noteService
-      .getNote()
+      .getNote(request.noteId)
       .mapBoth(
         _ => new StatusException(Status.INTERNAL),
         note => GetNoteResponse(Some(Converter.toProto(note)))
       )
-  }
+
   override def getUserNotes(
       request: GetUserNotesRequest
   ): IO[
@@ -85,18 +70,66 @@ class CalendarImpl(noteService: NoteService) extends Calendar {
   ): IO[
     StatusException,
     CreateUserResponse
-  ] = ???
+  ] = userService
+    .createUser(UserSource(request.userName, request.password))
+    .mapBoth(
+      _ => new StatusException(Status.INTERNAL),
+      user => CreateUserResponse(user = Some(Converter.toProto(user)))
+    )
 
   override def deleteUser(
       request: DeleteUserRequest
   ): IO[
     StatusException,
     DeleteUserResponse
-  ] = ???
+  ] = userService
+    .deleteUser(request.userId)
+    .mapBoth(
+      _ => new StatusException(Status.INTERNAL),
+      _ => DeleteUserResponse()
+    )
+  override def getUser(
+      request: GetUserRequest
+  ): IO[
+    StatusException,
+    GetUserResponse
+  ] = userService
+    .getUser(request.userId)
+    .mapBoth(
+      _ => new StatusException(Status.INTERNAL),
+      user => GetUserResponse(Some(Converter.toProto(user)))
+    )
+  override def authenticateUser(
+      request: AuthenticateUserRequest
+  ): IO[
+    StatusException,
+    AuthenticateUserResponse
+  ] = authService
+    .authenticateUser(request.userId, request.password)
+    .mapBoth(
+      _ => new StatusException(Status.INTERNAL),
+      result => AuthenticateUserResponse(result = result)
+    )
+
+  override def deleteAuth(
+      request: DeleteAuthRequest
+  ): IO[
+    StatusException,
+    DeleteAuthResponse
+  ] = authService
+    .deleteAuth(request.id)
+    .mapBoth(
+      _ => new StatusException(Status.INTERNAL),
+      _ => DeleteAuthResponse()
+    )
 }
 
 object CalendarImpl {
-  def live: ZLayer[NoteService, Throwable, CalendarImpl] = {
-    ZLayer.fromFunction(new CalendarImpl(_))
+  def live: ZLayer[
+    NoteService with UserService with AuthService,
+    Throwable,
+    CalendarImpl
+  ] = {
+    ZLayer.fromFunction(new CalendarImpl(_, _, _))
   }
 }

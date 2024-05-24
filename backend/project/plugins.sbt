@@ -4,6 +4,8 @@ addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.4.3")
 
 addSbtPlugin("com.thesamet" % "sbt-protoc" % "1.0.6")
 
+addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "1.2.0")
+
 val zioGrpcVersion = "0.6.0-rc5"
 
 libraryDependencies ++= Seq(
