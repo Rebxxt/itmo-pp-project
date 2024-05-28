@@ -1,10 +1,11 @@
 create database calendar;
+
 \c calendar;
 
 create table notes (
     id text not null,
     text text not null,
-    user_id bigint not null,
+    user_id text not null,
     date bigint not null,
     primary key (id)
 );

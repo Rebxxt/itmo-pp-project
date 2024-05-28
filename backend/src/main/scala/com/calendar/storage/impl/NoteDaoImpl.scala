@@ -13,13 +13,17 @@ object NoteDaoImpl extends NoteDao {
     sql"insert into notes(id, text, user_id, date) values ($id, $text, $userId, $date)".update.run
       .map(_ => note)
   }
-  override def getNote(noteId: String): ConnectionIO[Note] = {
-    sql"select id, text, user_id, date from notes where noteId = $noteId".query[Note].unique
+  override def getNote(noteId: String): ConnectionIO[Option[Note]] = {
+    sql"select id, text, user_id, date from notes where id = $noteId"
+      .query[Note]
+      .option
   }
   override def getUserNotes(
       userId: String
   ): ConnectionIO[Seq[Note]] =
-    sql"select id, text, user_id, date from notes where user_id = $userId".query[Note].to[Seq] // :TODO fix
+    sql"select id, text, user_id, date from notes where user_id = $userId"
+      .query[Note]
+      .to[Seq] // :TODO fix
 
   override def deleteNote(noteId: String): ConnectionIO[Unit] =
     sql"delete from notes where id = $noteId".update.run.map(_ => ())

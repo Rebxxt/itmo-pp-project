@@ -1,7 +1,7 @@
 package com.calendar.model
 import org.joda.time.DateTime
 
-case class Note(id: String, text: String, userId: Long, date: Long)
+case class Note(id: String, text: String, userId: String, date: Long)
 
 object Note {
   def fromNoteSource(noteSource: NoteSource, id: String): Note =

@@ -11,7 +11,7 @@ import zio.{Task, ZIO, ZLayer}
 class NoteService(transactor: Transactor[Task]) {
   implicit val tr: Transactor[Task] = transactor
 
-  def getNote(noteId: String): Task[Note] = runTransaction(
+  def getNote(noteId: String): Task[Option[Note]] = runTransaction(
     NoteDaoImpl.getNote(noteId)
   )
 

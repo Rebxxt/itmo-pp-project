@@ -10,7 +10,9 @@ import pureconfig.generic.auto._
 import zio._
 import zio.Console._
 import calendar.calendar.ZioCalendar.Calendar
+import com.calendar.alert.AlertBot
 import com.calendar.api.CalendarImpl
+import com.calendar.config.{DbConfig, TelegramConfig}
 import com.calendar.service.{AuthService, NoteService, UserService}
 import com.calendar.storage.NoteDao
 import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
@@ -29,24 +31,32 @@ object Main extends zio.ZIOAppDefault {
       .addFromEnvironment[Calendar]
   )
 
-  val dbConfig =
+  private val dbConfig =
     ConfigSource.default
+      .at("postgres")
       .load[DbConfig]
       .getOrElse(throw new IllegalStateException("Config is wrong"))
 
-  val xa: Transactor[Task] = Transactor.fromDriverManager[Task](
+  private val telegramConfig = ConfigSource.default
+    .at("telegram")
+    .load[TelegramConfig]
+    .getOrElse(throw new IllegalStateException("Config is wrong"))
+
+  val transactor: Transactor[Task] = Transactor.fromDriverManager[Task](
     "org.postgresql.Driver",
     dbConfig.postgresUri,
     dbConfig.postgresUsername,
     dbConfig.postgresPassword
   )
 
-  val calendarProject = ZLayer.make[Server](
-    ZLayer.succeed(xa),
+  private val calendarProject = ZLayer.make[Server](
+    ZLayer.succeed(transactor),
+    ZLayer.succeed(telegramConfig),
     CalendarImpl.live,
     UserService.live,
     NoteService.live,
     AuthService.live,
+    AlertBot.live,
     serverLayer
   )
 

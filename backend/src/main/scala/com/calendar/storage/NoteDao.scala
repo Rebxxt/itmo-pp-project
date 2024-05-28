@@ -8,7 +8,7 @@ import doobie.free.connection.ConnectionIO
 
 trait NoteDao {
   def addNote(note: Note): ConnectionIO[Note]
-  def getNote(noteId: String): ConnectionIO[Note]
+  def getNote(noteId: String): ConnectionIO[Option[Note]]
   def getUserNotes(userId: String): ConnectionIO[Seq[Note]]
   def deleteNote(noteId: String): ConnectionIO[Unit]
 }

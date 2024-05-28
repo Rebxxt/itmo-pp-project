@@ -3,6 +3,7 @@ package com.calendar.api
 import calendar.calendar.ZioCalendar.Calendar
 import calendar.calendar._
 import com.calendar.Converter
+import com.calendar.alert.AlertBot
 import com.calendar.model.{NoteSource, UserSource}
 import com.calendar.service.{AuthService, NoteService, UserService}
 import io.grpc.{Status, StatusException}
@@ -11,7 +12,8 @@ import zio._
 class CalendarImpl(
     noteService: NoteService,
     userService: UserService,
-    authService: AuthService
+    authService: AuthService,
+    alertBot: AlertBot
 ) extends Calendar {
   override def createNote(
       request: AddNoteRequest
@@ -22,10 +24,18 @@ class CalendarImpl(
     val note = NoteSource(request.text, request.userId, request.date)
     noteService
       .addNote(note)
+      .tapError(t =>
+        alertBot
+          .alert(
+            s"ALERT: Exception occurred while running CalendarImpl.createNote, message: ${t.getMessage}"
+          )
+          .orElseFail(new StatusException(Status.INTERNAL))
+      )
       .mapBoth(
         _ => new StatusException(Status.INTERNAL),
         note => AddNoteResponse(Some(Converter.toProto(note)))
       )
+
   }
 
   override def getNote(
@@ -36,9 +46,16 @@ class CalendarImpl(
   ] =
     noteService
       .getNote(request.noteId)
+      .tapError(t =>
+        alertBot
+          .alert(
+            s"ALERT: Exception occurred while running CalendarImpl.getNote, message: ${t.getMessage}"
+          )
+          .orElseFail(new StatusException(Status.INTERNAL))
+      )
       .mapBoth(
         _ => new StatusException(Status.INTERNAL),
-        note => GetNoteResponse(Some(Converter.toProto(note)))
+        note => GetNoteResponse(note.map(Converter.toProto))
       )
 
   override def getUserNotes(
@@ -48,6 +65,13 @@ class CalendarImpl(
     GetUserNotesResponse
   ] = noteService
     .getUserNotes(request.userId)
+    .tapError(t =>
+      alertBot
+        .alert(
+          s"ALERT: Exception occurred while running CalendarImpl.getUserNotes, message: ${t.getMessage}"
+        )
+        .orElseFail(new StatusException(Status.INTERNAL))
+    )
     .mapBoth(
       _ => new StatusException(Status.INTERNAL),
       notes => GetUserNotesResponse(notes.map(Converter.toProto))
@@ -60,6 +84,13 @@ class CalendarImpl(
     DeleteNoteResponse
   ] = noteService
     .deleteNode(request.noteId)
+    .tapError(t =>
+      alertBot
+        .alert(
+          s"ALERT: Exception occurred while running CalendarImpl.deleteNote, message: ${t.getMessage}"
+        )
+        .orElseFail(new StatusException(Status.INTERNAL))
+    )
     .mapBoth(
       _ => new StatusException(Status.INTERNAL),
       _ => DeleteNoteResponse()
@@ -72,6 +103,13 @@ class CalendarImpl(
     CreateUserResponse
   ] = userService
     .createUser(UserSource(request.userName, request.password))
+    .tapError(t =>
+      alertBot
+        .alert(
+          s"ALERT: Exception occurred while running CalendarImpl.createUser, message: ${t.getMessage}"
+        )
+        .orElseFail(new StatusException(Status.INTERNAL))
+    )
     .mapBoth(
       _ => new StatusException(Status.INTERNAL),
       user => CreateUserResponse(user = Some(Converter.toProto(user)))
@@ -84,6 +122,13 @@ class CalendarImpl(
     DeleteUserResponse
   ] = userService
     .deleteUser(request.userId)
+    .tapError(t =>
+      alertBot
+        .alert(
+          s"ALERT: Exception occurred while running CalendarImpl.deleteUser, message: ${t.getMessage}"
+        )
+        .orElseFail(new StatusException(Status.INTERNAL))
+    )
     .mapBoth(
       _ => new StatusException(Status.INTERNAL),
       _ => DeleteUserResponse()
@@ -95,10 +140,18 @@ class CalendarImpl(
     GetUserResponse
   ] = userService
     .getUser(request.userId)
+    .tapError(t =>
+      alertBot
+        .alert(
+          s"ALERT: Exception occurred while running CalendarImpl.getUser, message: ${t.getMessage}"
+        )
+        .orElseFail(new StatusException(Status.INTERNAL))
+    )
     .mapBoth(
       _ => new StatusException(Status.INTERNAL),
-      user => GetUserResponse(Some(Converter.toProto(user)))
+      user => GetUserResponse(user.map(Converter.toProto))
     )
+
   override def authenticateUser(
       request: AuthenticateUserRequest
   ): IO[
@@ -106,6 +159,13 @@ class CalendarImpl(
     AuthenticateUserResponse
   ] = authService
     .authenticateUser(request.userId, request.password)
+    .tapError(t =>
+      alertBot
+        .alert(
+          s"ALERT: Exception occurred while running CalendarImpl.authenticateUser, message: ${t.getMessage}"
+        )
+        .orElseFail(new StatusException(Status.INTERNAL))
+    )
     .mapBoth(
       _ => new StatusException(Status.INTERNAL),
       result => AuthenticateUserResponse(result = result)
@@ -118,6 +178,13 @@ class CalendarImpl(
     DeleteAuthResponse
   ] = authService
     .deleteAuth(request.id)
+    .tapError(t =>
+      alertBot
+        .alert(
+          s"ALERT: Exception occurred while running CalendarImpl.deleteUser, message: ${t.getMessage}"
+        )
+        .orElseFail(new StatusException(Status.INTERNAL))
+    )
     .mapBoth(
       _ => new StatusException(Status.INTERNAL),
       _ => DeleteAuthResponse()
@@ -126,10 +193,10 @@ class CalendarImpl(
 
 object CalendarImpl {
   def live: ZLayer[
-    NoteService with UserService with AuthService,
+    NoteService with UserService with AuthService with AlertBot,
     Throwable,
     CalendarImpl
   ] = {
-    ZLayer.fromFunction(new CalendarImpl(_, _, _))
+    ZLayer.fromFunction(new CalendarImpl(_, _, _, _))
   }
 }

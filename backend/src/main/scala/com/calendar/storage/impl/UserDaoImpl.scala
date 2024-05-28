@@ -18,8 +18,8 @@ object UserDaoImpl extends UserDao {
   override def getUser(
       userId: String
   ): ConnectionIO[
-    User
-  ] = sql"select id, name from users where id = $userId".query[User].unique
+    Option[User]
+  ] = sql"select id, name from users where id = $userId".query[User].option
 
   override def deleteUser(
       userId: String

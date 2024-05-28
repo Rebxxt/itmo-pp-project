@@ -1,4 +1,4 @@
-package com.calendar
+package com.calendar.config
 
 case class DbConfig(
     postgresUri: String,

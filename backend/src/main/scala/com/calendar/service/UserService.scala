@@ -19,7 +19,7 @@ class UserService(transactor: Transactor[Task], authService: AuthService) {
     } yield user
   }
 
-  def getUser(userId: String): Task[User] = runTransaction(
+  def getUser(userId: String): Task[Option[User]] = runTransaction(
     UserDaoImpl.getUser(userId)
   )
 

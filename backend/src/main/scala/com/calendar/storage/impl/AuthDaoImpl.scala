@@ -19,13 +19,13 @@ object AuthDaoImpl extends AuthDao {
   override def getAuth(
       auth: Auth
   ): ConnectionIO[
-    Auth
+    Option[Auth]
   ] = {
     val id = auth.id
     val hashedPassword = auth.hashedPassword
     sql"select id, hashed_password from auth where id = $id and hashed_password = $hashedPassword"
       .query[Auth]
-      .unique
+      .option
   }
 
   override def deleteAuth(

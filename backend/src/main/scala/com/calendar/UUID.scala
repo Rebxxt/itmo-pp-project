@@ -5,5 +5,5 @@ import java.util.{UUID => jUUID}
 
 object UUID {
   def generateUUID: UIO[String] =
-        ZIO.succeed(jUUID.randomUUID()).map(_.toString)
+    ZIO.succeed(jUUID.randomUUID()).map(_.toString)
 }

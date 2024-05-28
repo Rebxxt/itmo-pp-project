@@ -37,10 +37,21 @@ libraryDependencies += "dev.zio" %% "zio-macros" % "2.0.13"
 
 libraryDependencies += "dev.zio" %% "zio-interop-cats" % "23.0.0.5"
 
+libraryDependencies += "com.bot4s" %% "telegram-core" % "5.8.0"
+libraryDependencies += "com.softwaremill.sttp.client3" %% "async-http-client-backend-zio" % "3.9.7"
+
+libraryDependencies += "dev.zio" %% "zio-test-sbt" % "2.0.19" % Test
+libraryDependencies += "org.testcontainers" % "postgresql" % "1.19.7" % Test
+libraryDependencies += "org.testcontainers" % "testcontainers" % "1.19.7" % Test
+libraryDependencies += "com.dimafeng" %% "testcontainers-scala-postgresql" % "0.41.3" % Test
+
+
 run / fork := true
 
 assemblyMergeStrategy in assembly := {
   case x if x.contains("io.netty.versions.properties") => MergeStrategy.discard
+//  case x if x.endsWith("/module-info.class") => MergeStrategy.discard
+  case x if x.endsWith("module-info.class") => MergeStrategy.discard
   case x =>
     val oldStrategy = (assemblyMergeStrategy in assembly).value
     oldStrategy(x)

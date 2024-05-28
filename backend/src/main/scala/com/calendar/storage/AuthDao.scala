@@ -8,6 +8,6 @@ import doobie.free.connection.ConnectionIO
 
 trait AuthDao {
   def addAuth(auth: Auth): ConnectionIO[Auth]
-  def getAuth(auth: Auth): ConnectionIO[Auth]
+  def getAuth(auth: Auth): ConnectionIO[Option[Auth]]
   def deleteAuth(id: String): ConnectionIO[Unit]
 }

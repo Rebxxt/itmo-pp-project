@@ -27,7 +27,7 @@ class AuthService(transactor: Transactor[Task]) {
       hashString(password)
     runTransaction(
       AuthDaoImpl.getAuth(Auth(id = id, hashedPassword = hashedPassword))
-    ).as(true).orElse(ZIO.succeed(false))
+    ).map(_.nonEmpty)
   }
 
 }
