@@ -12,6 +12,7 @@ import zio.Console._
 import calendar.calendar.ZioCalendar.Calendar
 import com.calendar.alert.AlertBot
 import com.calendar.api.CalendarImpl
+import com.calendar.api.http.ApiHandler
 import com.calendar.config.{DbConfig, TelegramConfig}
 import com.calendar.service.{AuthService, NoteService, UserService}
 import com.calendar.storage.NoteDao
@@ -23,13 +24,13 @@ import scalapb.zio_grpc.ServerLayer
 import zio.interop.catz.asyncInstance
 
 object Main extends zio.ZIOAppDefault {
-  val serverLayer = ServerLayer.fromServiceList(
-    io.grpc.ServerBuilder
-      .forPort(9090)
-      .addService(ProtoReflectionService.newInstance()),
-    ServiceList
-      .addFromEnvironment[Calendar]
-  )
+//  val serverLayer = ServerLayer.fromServiceList(
+//    io.grpc.ServerBuilder
+//      .forPort(9090)
+//      .addService(ProtoReflectionService.newInstance()),
+//    ServiceList
+//      .addFromEnvironment[Calendar]
+//  )
 
   private val dbConfig =
     ConfigSource.default
@@ -49,7 +50,7 @@ object Main extends zio.ZIOAppDefault {
     dbConfig.postgresPassword
   )
 
-  private val calendarProject = ZLayer.make[Server](
+  private val calendarProject = ZLayer.make[ApiHandler](
     ZLayer.succeed(transactor),
     ZLayer.succeed(telegramConfig),
     CalendarImpl.live,
@@ -57,9 +58,13 @@ object Main extends zio.ZIOAppDefault {
     NoteService.live,
     AuthService.live,
     AlertBot.live,
-    serverLayer
+    ApiHandler.live
+//    serverLayer
   )
 
   def run =
-    (calendarProject.build *> ZIO.never).exitCode
+    (for {
+      apiHandler <- ZIO.service[ApiHandler]
+      _ <- apiHandler.run
+    } yield ()).provide(calendarProject).exitCode
 }

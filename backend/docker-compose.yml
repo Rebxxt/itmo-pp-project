@@ -17,6 +17,6 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "9090:9090"
+      - "8080:8080"
     depends_on:
       - db
