@@ -27,8 +27,8 @@ class ApiHandler(
   }
 
   def run: Task[Unit] = {
-    implicit val system: ActorSystem = ActorSystem("weather-forecast")
-    Http().newServerAt("localhost", 8080).bind(route)
+    implicit val system: ActorSystem = ActorSystem("calendar")
+    Http().newServerAt("0.0.0.0", 8080).bind(route)
     ZIO.never
   }
 }

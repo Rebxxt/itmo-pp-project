@@ -8,7 +8,7 @@ object SwaggerDocService extends SwaggerHttpWithUiService {
   override val apiClasses: Set[Class[_]] =
     Set(classOf[NoteHandler], classOf[UserHandler], classOf[AuthHandler])
   override val host: String =
-    "localhost:8080" // Ensure this matches your actual host and port
+    "0.0.0.0:8080" // Ensure this matches your actual host and port
   override val schemes: List[String] = List("http")
   override def apiDocsPath: String = "docs"
 
