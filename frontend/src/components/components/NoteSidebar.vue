@@ -35,6 +35,7 @@ import {initNotes} from "@/components/js/mock";
 export default {
   name: 'NoteSidebar',
   components: {NoteCreator},
+  inject: ['$noteService'],
   props: {
     selectedDay: {
       date: Date,
@@ -93,6 +94,10 @@ export default {
     }
   },
   created() {
+    // todo
+    this.$noteService.get('TODO_USER').then((response) => {
+      console.log('response', response)
+    })
     this.setNotes(initNotes)
   },
   data() {

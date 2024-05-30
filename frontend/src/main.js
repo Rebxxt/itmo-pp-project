@@ -1,37 +1,13 @@
+import {AuthService} from "@/services/http/auth.api";
+import {NoteService} from "@/services/http/note.api";
+import initStore from "@/store/main.store";
 import {createApp} from 'vue'
-import {createStore} from "vuex";
 import App from './App.vue'
 
-const store = createStore({
-    state() {
-        return {
-            selectedDay: null,
-            selectedNote: null,
-            noteChanges: null,
-            calendar: null,
-            notes: null,
-        }
-    },
-    mutations: {
-        onSelectDay(state, day) {
-            state.selectedDay = day;
-        },
-        onSelectedNote(state, note) {
-            state.selectedNote = note;
-        },
-        onChangeNote(state, note) {
-            state.noteChanges = note;
-        },
-        setCalendar(state, calendar) {
-            state.selectedDay = null;
-            state.calendar = calendar;
-        },
-        setNotes(state, notes) {
-            state.notes = notes;
-        },
-    }
-})
+const backendHost = "localhost:8080/"
 
 const app = createApp(App)
-app.use(store)
+app.use(initStore())
+app.provide('$authService', new AuthService(backendHost))
+app.provide('$noteService', new NoteService(backendHost))
 app.mount('#app')
