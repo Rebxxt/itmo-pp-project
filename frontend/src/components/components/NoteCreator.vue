@@ -4,21 +4,27 @@
       <input
           v-model="text"
           placeholder="Сделать домашнее задание..."
+          :disabled="loading"
       >
-      <button type="submit">Добавить</button>
+      <button type="submit" :disabled="loading">Добавить</button>
     </form>
+    <p class="validator" v-if="validator">{{validator}}</p>
   </div>
 </template>
 
 <script>
-import {MIN_NOTE_LENGTH} from "@/components/js/types";
+import {MIN_NOTE_LENGTH, VALIDATOR_LENGTH_MESSAGE} from "@/components/js/types";
 import {uuid} from "vue-uuid";
 
 export default {
   name: 'NoteCreator',
+  props: {
+    loading: Boolean
+  },
   data() {
     return {
-      text: ''
+      text: '',
+      validator: null
     }
   },
   computed: {
@@ -30,8 +36,13 @@ export default {
     onCreate() {
       if (this.text.length < MIN_NOTE_LENGTH) {
         console.error('length should be more than', MIN_NOTE_LENGTH)
+        this.validator = VALIDATOR_LENGTH_MESSAGE;
+        setTimeout(() => {
+          this.validator = null;
+        }, 5000)
         return
       }
+      this.validator = null;
       const note = {
         id: uuid.v4(), // TODO: remove after connect backend
         text: this.text,
@@ -54,5 +65,8 @@ input {
   flex: 1;
   padding: 8px;
   font-size: 16px;
+}
+.validator {
+  color: red;
 }
 </style>

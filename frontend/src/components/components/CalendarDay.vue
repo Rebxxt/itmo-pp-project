@@ -11,13 +11,18 @@
   >
     <div v-if="day.hasNotes" class="note-marker"></div>
     <h3>{{ day.date.getDate() }}</h3>
-    <p>{{ getDayName }}</p>
+    <p v-if="anyLoading"><PulseLoader :loading="anyLoading"></PulseLoader></p>
+    <p v-else>{{ getDayName }}</p>
   </div>
 </template>
 
 <script>
+import PulseLoader from "vue-spinner/src/PulseLoader.vue";
+
 export default {
   name: 'CalendarDay',
+  components: {PulseLoader},
+  inject: ['$noteService'],
   props: {
     id: Number,
     day: {
@@ -27,6 +32,11 @@ export default {
       hasNotes: Boolean,
     },
     type: String,
+  },
+  data() {
+    return {
+      loadings: 0,
+    }
   },
   computed: {
     getDayName() {
@@ -40,13 +50,25 @@ export default {
                   selected.date.getMonth() === this.day.date.getMonth() &&
                   selected.date.getDate() === this.day.date.getDate()));
     },
+    anyLoading() {
+      return this.loadings > 0
+    }
   },
   methods: {
     onDrop() {
-      const noteResult = this.$store.state.selectedNote;
-      noteResult.createdAt.setDate(this.day.date.getDate())
-      noteResult.createdAt.setMonth(this.day.date.getMonth())
-      this.$store.commit('onChangeNote', noteResult)
+      this.loadings += 1;
+      const temp = this.$store.state.selectedNote;
+      temp.loading = true;
+      const noteResult = {...this.$store.state.selectedNote};
+      const year = this.day.date.getFullYear();
+      const month = this.day.date.getMonth();
+      const date = this.day.date.getDate();
+      noteResult.createdAt = new Date(year, month, date)
+      console.log(noteResult)
+      this.$noteService.put(noteResult.text, noteResult.createdAt, noteResult.id).then((response) => {
+        this.$store.commit('onChangeNote', response)
+        this.loadings -= 1;
+      })
     }
   },
 }
@@ -73,15 +95,21 @@ export default {
   box-shadow: rgba(0, 0, 0, 0.24) 0px 5px 12px;
 }
 
-.month-previous {
+.month-previous-even {
+  background: #bbbbbb !important;
+}
+.month-previous-odd {
   background: #cecece !important;
 }
 
 .month-current {
 }
 
-.month-next {
-  background: #ffe8b4 !important;
+.month-next-even {
+  background: #ffde93 !important;
+}
+.month-next-odd {
+  background: #ffe9bb !important;
 }
 
 .day-passed {
