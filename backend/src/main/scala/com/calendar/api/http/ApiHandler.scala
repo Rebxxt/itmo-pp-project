@@ -15,7 +15,7 @@ class ApiHandler(
     userService: UserService,
     authService: AuthService,
     alertBot: AlertBot
-) {
+) extends Handler {
   def route: Route = {
     pathPrefix("note") {
       new NoteHandler(noteService, alertBot).route

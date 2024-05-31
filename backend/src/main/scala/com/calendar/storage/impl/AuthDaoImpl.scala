@@ -10,9 +10,9 @@ object AuthDaoImpl extends AuthDao {
   ): ConnectionIO[
     Auth
   ] = {
-    val id = auth.id
+    val userLogin = auth.userLogin
     val hashedPassword = auth.hashedPassword
-    sql"insert into auth(id, hashed_password) values ($id, $hashedPassword)".update.run
+    sql"insert into auth(user_login, hashed_password) values ($userLogin, $hashedPassword)".update.run
       .map(_ => auth)
   }
 
@@ -21,15 +21,15 @@ object AuthDaoImpl extends AuthDao {
   ): ConnectionIO[
     Option[Auth]
   ] = {
-    val id = auth.id
+    val userLogin = auth.userLogin
     val hashedPassword = auth.hashedPassword
-    sql"select id, hashed_password from auth where id = $id and hashed_password = $hashedPassword"
+    sql"select user_login, hashed_password from auth where user_login = $userLogin and hashed_password = $hashedPassword"
       .query[Auth]
       .option
   }
 
   override def deleteAuth(
-      id: String
+      userLogin: String
   ): ConnectionIO[Unit] =
-    sql"delete from auth where id = $id".update.run.map(_ => ())
+    sql"delete from auth where user_login = $userLogin".update.run.map(_ => ())
 }

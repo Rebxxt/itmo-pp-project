@@ -5,18 +5,17 @@ create database calendar;
 create table notes (
     id text not null,
     text text not null,
-    user_id text not null,
+    user_login text not null,
     date bigint not null,
     primary key (id)
 );
 
 create table users (
-    id text not null,
-    name text not null,
-    primary key (id)
+    login text not null,
+    primary key (login)
 );
 
 create table auth (
-    id text not null,
+    user_login text not null,
     hashed_password text not null
 );

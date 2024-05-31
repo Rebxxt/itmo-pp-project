@@ -1,3 +1,3 @@
 package com.calendar.model
 
-case class NoteSource(text: String, userId: String, date: Long)
+case class NoteSource(text: String, userLogin: String, date: Long)

@@ -25,9 +25,9 @@ class AuthHandler(authService: AuthService, alertBot: AlertBot)
     description = "Tries to authenticate user by login and password",
     parameters = Array(
       new Parameter(
-        name = "user_name",
+        name = "user_login",
         in = ParameterIn.QUERY,
-        description = "User name",
+        description = "User login",
         content = Array(
           new Content(schema = new Schema(implementation = classOf[String]))
         )
@@ -47,15 +47,17 @@ class AuthHandler(authService: AuthService, alertBot: AlertBot)
     description = "True if authentication succeeded, false otherwise"
   )
   def authenticateUser: Route =
-    (post & WithUserName & WithPassword & pathEndOrSingleSlash) {
-      (userName, password) =>
+    (post & WithUserLogin & WithPassword & pathEndOrSingleSlash) {
+      (userLogin, password) =>
         complete(
-          authService.authenticateUser(userName, password).map(_.toString)
+          authService
+            .authenticateUser(userLogin = userLogin, password = password)
+            .map(_.toString)
         )
     }
 
-  private val WithUserName: Directive1[String] = parameter(
-    Symbol("user_name").as[String]
+  private val WithUserLogin: Directive1[String] = parameter(
+    Symbol("user_login").as[String]
   )
 
   private val WithPassword: Directive1[String] = parameter(

@@ -10,19 +10,18 @@ object UserDaoImpl extends UserDao {
   ): ConnectionIO[
     User
   ] = {
-    val id = user.id
-    val name = user.name
-    sql"insert into users(id, name) values ($id, $name)".update.run
+    val login = user.login
+    sql"insert into users(login) values ($login)".update.run
       .map(_ => user)
   }
   override def getUser(
-      userId: String
+      userLogin: String
   ): ConnectionIO[
     Option[User]
-  ] = sql"select id, name from users where id = $userId".query[User].option
+  ] = sql"select login from users where login = $userLogin".query[User].option
 
   override def deleteUser(
-      userId: String
+      userLogin: String
   ): ConnectionIO[Unit] =
-    sql"delete from users where id = $userId".update.run.map(_ => ())
+    sql"delete from users where login = $userLogin".update.run.map(_ => ())
 }

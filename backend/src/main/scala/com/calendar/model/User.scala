@@ -1,9 +1,9 @@
 package com.calendar.model
 
-case class User(id: String, name: String)
+case class User(login: String)
 
 object User {
-  def fromUserSource(userSource: UserSource, id: String): User = {
-    User(id = id, name = userSource.name)
+  def fromUserSource(userSource: UserSource): User = {
+    User(login = userSource.login)
   }
 }

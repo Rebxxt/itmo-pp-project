@@ -10,23 +10,27 @@ import java.security.MessageDigest
 class AuthService(transactor: Transactor[Task]) {
   implicit val tr: Transactor[Task] = transactor
 
-  def createAuth(id: String, password: String): Task[Auth] = {
+  def createAuth(userLogin: String, password: String): Task[Auth] = {
     val hashedPassword =
       hashString(password)
     runTransaction(
-      AuthDaoImpl.addAuth(Auth(id = id, hashedPassword = hashedPassword))
+      AuthDaoImpl.addAuth(
+        Auth(userLogin = userLogin, hashedPassword = hashedPassword)
+      )
     )
   }
 
-  def deleteAuth(id: String): Task[Unit] = {
-    runTransaction(AuthDaoImpl.deleteAuth(id))
+  def deleteAuth(userLogin: String): Task[Unit] = {
+    runTransaction(AuthDaoImpl.deleteAuth(userLogin))
   }
 
-  def authenticateUser(id: String, password: String): Task[Boolean] = {
+  def authenticateUser(userLogin: String, password: String): Task[Boolean] = {
     val hashedPassword =
       hashString(password)
     runTransaction(
-      AuthDaoImpl.getAuth(Auth(id = id, hashedPassword = hashedPassword))
+      AuthDaoImpl.getAuth(
+        Auth(userLogin = userLogin, hashedPassword = hashedPassword)
+      )
     ).map(_.nonEmpty)
   }
 

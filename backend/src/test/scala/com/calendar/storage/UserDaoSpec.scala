@@ -11,7 +11,7 @@ import zio.test.Assertion._
 import zio.test.{Spec, TestEnvironment, ZIOSpecDefault, assertTrue, assertZIO}
 
 object UserDaoSpec extends ZIOSpecDefault {
-  private val testUser = User("id", "Anna")
+  private val testUser = User("Anna")
   override def spec: Spec[
     TestEnvironment with Scope,
     Any
@@ -21,9 +21,9 @@ object UserDaoSpec extends ZIOSpecDefault {
         userDao <- ZIO.service[UserDao]
         transactor <- ZIO.service[Transactor[Task]]
         addedUser <- runTransaction(userDao.addUser(testUser))(transactor)
-        gotUser <- runTransaction(userDao.getUser(testUser.id))(transactor)
+        gotUser <- runTransaction(userDao.getUser(testUser.login))(transactor)
         nonExistingUser <- runTransaction(
-          userDao.getUser(testUser.id + "fake")
+          userDao.getUser(testUser.login + "fake")
         )(transactor)
       } yield assertTrue(
         addedUser == testUser && gotUser.contains(
@@ -39,8 +39,8 @@ object UserDaoSpec extends ZIOSpecDefault {
         userDao <- ZIO.service[UserDao]
         transactor <- ZIO.service[Transactor[Task]]
         _ <- runTransaction(userDao.addUser(testUser))(transactor)
-        _ <- runTransaction(userDao.deleteUser(testUser.id))(transactor)
-        nonExistingUser <- runTransaction(userDao.getUser(testUser.id))(
+        _ <- runTransaction(userDao.deleteUser(testUser.login))(transactor)
+        nonExistingUser <- runTransaction(userDao.getUser(testUser.login))(
           transactor
         )
       } yield assertTrue(nonExistingUser.isEmpty))

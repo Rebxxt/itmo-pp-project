@@ -1,3 +1,3 @@
 package com.calendar.model
 
-case class Auth(id: String, hashedPassword: String)
+case class Auth(userLogin: String, hashedPassword: String)

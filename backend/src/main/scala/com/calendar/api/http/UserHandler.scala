@@ -1,7 +1,13 @@
 package com.calendar.api.http
 import akka.http.interop.ZIOSupport
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import akka.http.scaladsl.server.Directives.{complete, delete, get, parameter, post}
+import akka.http.scaladsl.server.Directives.{
+  complete,
+  delete,
+  get,
+  parameter,
+  post
+}
 import akka.http.scaladsl.server.{Directive1, Route}
 import com.calendar.alert.AlertBot
 import com.calendar.model.{Note, NoteSource, User, UserSource}
@@ -30,9 +36,9 @@ class UserHandler(userService: UserService, alertBot: AlertBot)
     description = "Creates and returns new user",
     parameters = Array(
       new Parameter(
-        name = "user_name",
+        name = "user_login",
         in = ParameterIn.QUERY,
-        description = "User name",
+        description = "User login",
         content = Array(
           new Content(schema = new Schema(implementation = classOf[String]))
         )
@@ -49,18 +55,22 @@ class UserHandler(userService: UserService, alertBot: AlertBot)
   )
   @ApiResponse(responseCode = "200", description = "Created user")
   def createUser: Route =
-    (post & WithUserName & WithPassword & pathEndOrSingleSlash) {
-      (userName, password) =>
-        complete(userService.createUser(UserSource(userName, password)))
+    (post & WithUserLogin & WithPassword & pathEndOrSingleSlash) {
+      (userLogin, password) =>
+        complete(
+          userService.createUser(
+            UserSource(login = userLogin, password = password)
+          )
+        )
     }
 
   @GET
   @Operation(
     summary = "Get user",
-    description = "Get user by user id",
+    description = "Get user by user login",
     parameters = Array(
       new Parameter(
-        name = "user_id",
+        name = "user_login",
         in = ParameterIn.QUERY,
         description = "User id",
         content = Array(
@@ -71,19 +81,19 @@ class UserHandler(userService: UserService, alertBot: AlertBot)
   )
   @ApiResponse(responseCode = "200", description = "User")
   def getUser: Route =
-    (get & WithUserId & pathEndOrSingleSlash) { userId =>
-      complete(userService.getUser(userId))
+    (get & WithUserLogin & pathEndOrSingleSlash) { userLogin =>
+      complete(userService.getUser(userLogin = userLogin))
     }
 
   @DELETE
   @Operation(
     summary = "Delete user",
-    description = "Delete user by user id",
+    description = "Delete user by user login",
     parameters = Array(
       new Parameter(
-        name = "user_id",
+        name = "user_login",
         in = ParameterIn.QUERY,
-        description = "User id",
+        description = "User login",
         content = Array(
           new Content(schema = new Schema(implementation = classOf[String]))
         )
@@ -92,16 +102,12 @@ class UserHandler(userService: UserService, alertBot: AlertBot)
   )
   @ApiResponse(responseCode = "200", description = "OK if user was deleted")
   def deleteUser: Route =
-    (delete & WithUserId & pathEndOrSingleSlash) { userId =>
-      complete(userService.deleteUser(userId).as("OK"))
+    (delete & WithUserLogin & pathEndOrSingleSlash) { userLogin =>
+      complete(userService.deleteUser(userLogin = userLogin).as("OK"))
     }
 
-  private val WithUserName: Directive1[String] = parameter(
-    Symbol("user_name").as[String]
-  )
-
-  private val WithUserId: Directive1[String] = parameter(
-    Symbol("user_id").as[String]
+  private val WithUserLogin: Directive1[String] = parameter(
+    Symbol("user_login").as[String]
   )
 
   private val WithPassword: Directive1[String] = parameter(
@@ -110,6 +116,6 @@ class UserHandler(userService: UserService, alertBot: AlertBot)
 }
 object UserHandler {
   trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
-    implicit val userFormat: RootJsonFormat[User] = jsonFormat2(User.apply)
+    implicit val userFormat: RootJsonFormat[User] = jsonFormat1(User.apply)
   }
 }

@@ -7,12 +7,12 @@ object Converter {
     ProtoNote(
       noteId = note.id,
       text = note.text,
-      userId = note.userId,
+      userLogin = note.userLogin,
       date = note.date
     )
   }
 
   def toProto(user: User): ProtoUser = {
-    ProtoUser(userId = user.id, userName = user.name)
+    ProtoUser(userLogin = user.login)
   }
 }

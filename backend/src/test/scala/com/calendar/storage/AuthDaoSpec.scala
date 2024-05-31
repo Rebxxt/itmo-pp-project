@@ -25,7 +25,9 @@ object AuthDaoSpec extends ZIOSpecDefault {
         addedAuth <- runTransaction(authDao.addAuth(testAuth))(transactor)
         gotAuth <- runTransaction(authDao.getAuth(testAuth))(transactor)
         nonExistingAuth <- runTransaction(
-          authDao.getAuth(testAuth.copy(id = testAuth.id + "fake"))
+          authDao.getAuth(
+            testAuth.copy(userLogin = testAuth.userLogin + "fake")
+          )
         )(transactor)
       } yield assertTrue(
         addedAuth == testAuth && gotAuth.contains(
@@ -41,7 +43,7 @@ object AuthDaoSpec extends ZIOSpecDefault {
         authDao <- ZIO.service[AuthDao]
         transactor <- ZIO.service[Transactor[Task]]
         _ <- runTransaction(authDao.addAuth(testAuth))(transactor)
-        _ <- runTransaction(authDao.deleteAuth(testAuth.id))(transactor)
+        _ <- runTransaction(authDao.deleteAuth(testAuth.userLogin))(transactor)
         nonExistingAuth <- runTransaction(authDao.getAuth(testAuth))(
           transactor
         )

@@ -21,7 +21,11 @@ class CalendarImpl(
     StatusException,
     AddNoteResponse
   ] = {
-    val note = NoteSource(request.text, request.userId, request.date)
+    val note = NoteSource(
+      text = request.text,
+      userLogin = request.userLogin,
+      date = request.date
+    )
     noteService
       .addNote(note)
       .tapError(t =>
@@ -64,7 +68,7 @@ class CalendarImpl(
     StatusException,
     GetUserNotesResponse
   ] = noteService
-    .getUserNotes(request.userId)
+    .getUserNotes(request.userLogin)
     .tapError(t =>
       alertBot
         .alert(
@@ -102,7 +106,7 @@ class CalendarImpl(
     StatusException,
     CreateUserResponse
   ] = userService
-    .createUser(UserSource(request.userName, request.password))
+    .createUser(UserSource(request.userLogin, request.password))
     .tapError(t =>
       alertBot
         .alert(
@@ -121,7 +125,7 @@ class CalendarImpl(
     StatusException,
     DeleteUserResponse
   ] = userService
-    .deleteUser(request.userId)
+    .deleteUser(request.userLogin)
     .tapError(t =>
       alertBot
         .alert(
@@ -139,7 +143,7 @@ class CalendarImpl(
     StatusException,
     GetUserResponse
   ] = userService
-    .getUser(request.userId)
+    .getUser(request.userLogin)
     .tapError(t =>
       alertBot
         .alert(
@@ -158,7 +162,7 @@ class CalendarImpl(
     StatusException,
     AuthenticateUserResponse
   ] = authService
-    .authenticateUser(request.userId, request.password)
+    .authenticateUser(request.login, request.password)
     .tapError(t =>
       alertBot
         .alert(
@@ -177,7 +181,7 @@ class CalendarImpl(
     StatusException,
     DeleteAuthResponse
   ] = authService
-    .deleteAuth(request.id)
+    .deleteAuth(request.userLogin)
     .tapError(t =>
       alertBot
         .alert(

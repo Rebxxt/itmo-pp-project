@@ -26,15 +26,17 @@ class NoteService(transactor: Transactor[Task]) {
     } yield note
   }
 
-  def getUserNotes(
-      userId: String
-  ): ZIO[Any, Throwable, Seq[Note]] = {
-    runTransaction(NoteDaoImpl.getUserNotes(userId))
+  def updateNote(note: Note): ZIO[Any, Throwable, Note] = {
+    runTransaction(NoteDaoImpl.updateNote(note))
   }
 
-  def deleteNode(
-      noteId: String
-  ): ZIO[Any, Throwable, Unit] = {
+  def getUserNotes(
+      userLogin: String
+  ): ZIO[Any, Throwable, Seq[Note]] = {
+    runTransaction(NoteDaoImpl.getUserNotes(userLogin))
+  }
+
+  def deleteNode(noteId: String): ZIO[Any, Throwable, Unit] = {
     runTransaction(NoteDaoImpl.deleteNote(noteId))
   }
 }

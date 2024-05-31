@@ -60,10 +60,32 @@ object NoteDaoSpec extends ZIOSpecDefault {
         )
         _ <- runTransaction(noteDao.addNote(testNote))(transactor)
         _ <- runTransaction(noteDao.addNote(testNoteFromSameUser))(transactor)
-        gotNotes <- runTransaction(noteDao.getUserNotes(testNote.userId))(
+        gotNotes <- runTransaction(noteDao.getUserNotes(testNote.userLogin))(
           transactor
         )
       } yield assertTrue(gotNotes.toSet == Set(testNote, testNoteFromSameUser)))
+        .provide(
+          ZLayer.succeed(NoteDaoImpl),
+          ZLayer.fromZIO(prepareContainer)
+        )
+    } + test("NoteDao.update") {
+      (for {
+        noteDao <- ZIO.service[NoteDao]
+        transactor <- ZIO.service[Transactor[Task]]
+        _ <- runTransaction(noteDao.addNote(testNote))(transactor)
+        updatedNote = testNote.copy(
+          text = "different text",
+          userLogin = "different login",
+          date = testNote.date + 1
+        )
+        gotNote <- runTransaction(noteDao.getNote(testNote.id))(transactor)
+        _ <- runTransaction(noteDao.updateNote(updatedNote))(transactor)
+        gotUpdatedNote <- runTransaction(noteDao.getNote(testNote.id))(
+          transactor
+        )
+      } yield assertTrue(
+        gotNote.contains(testNote) && gotUpdatedNote.contains(updatedNote)
+      ))
         .provide(
           ZLayer.succeed(NoteDaoImpl),
           ZLayer.fromZIO(prepareContainer)
