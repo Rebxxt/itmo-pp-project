@@ -1,13 +1,17 @@
 <template>
   <div class="container">
     <div class="body">
-      <h4 style="margin-top: 0;">Notes</h4>
+      <h4 style="margin-top: 0;">Заметки</h4>
 
-      <NoteCreator @onCreateNote="addNote"></NoteCreator>
+      <NoteCreator @onCreateNote="addNote" :loading="loading"></NoteCreator>
 
-      <div class="list" v-if="filteredNotes.length > 0">
+      <div v-if="loading">
+        <PulseLoader class="loader" :loading="loading"></PulseLoader>
+      </div>
+
+      <div class="list" v-else-if="filteredNotes.length > 0">
         <div
-            :draggable="true"
+            :draggable="!note.loading"
             @dragstart="startDrag($event, note)"
             @dragend="endDrag"
             @click="onClickNote(note)"
@@ -17,7 +21,9 @@
         >
           <span>{{note.text}}</span>
 
-          <span>{{note.createdAt?.toLocaleString('ru')}}</span>
+          <PulseLoader v-if="note.loading" class="note-loader" :loading="note.loading"></PulseLoader>
+          <span v-else>{{note.createdAt?.toLocaleDateString('ru')}}</span>
+
         </div>
       </div>
 
@@ -30,11 +36,12 @@
 
 <script>
 import NoteCreator from "@/components/components/NoteCreator.vue";
-import {initNotes} from "@/components/js/mock";
+import {ref} from "vue";
+import PulseLoader from 'vue-spinner/src/PulseLoader.vue'
 
 export default {
   name: 'NoteSidebar',
-  components: {NoteCreator},
+  components: {NoteCreator, PulseLoader},
   inject: ['$noteService'],
   props: {
     selectedDay: {
@@ -63,8 +70,16 @@ export default {
       this.$store.commit('onSelectedNote', this.selectedNoteToDrag)
     },
     setNotes(notes) {
-      this.notes = [...notes];
+      this.notes = [...notes].map(v => ({...v, loading: ref(false)}));
       this.$store.commit('setNotes', this.notes)
+    },
+    initNotes() {
+      this.loading = true;
+      this.$noteService.get('TODO_USER').then((response) => {
+        this.setNotes(response)
+        this.loading = false;
+        console.log('response', response)
+      })
     }
   },
   computed: {
@@ -86,24 +101,22 @@ export default {
   watch: {
     noteChanges(newNote) {
       if (newNote) {
-        const note = this.notes.find(v => v.id === newNote.id)
-        Object.assign(note, newNote)
-        this.setNotes(this.notes)
-        this.$store.commit('onChangeNote', null)
+        const note = this.notes.find(v => v.id === newNote.id);
+        note.loading = false;
+        Object.assign(note, newNote);
+        this.$store.commit('onChangeNote', null);
       }
     }
   },
   created() {
     // todo
-    this.$noteService.get('TODO_USER').then((response) => {
-      console.log('response', response)
-    })
-    this.setNotes(initNotes)
+    this.initNotes()
   },
   data() {
     return {
       selectedNoteToDrag: null,
-      notes: []
+      notes: [],
+      loading: true,
     }
   }
 }
@@ -111,7 +124,7 @@ export default {
 
 <style scoped>
 .container {
-  flex: auto;
+  flex: 1;
   overflow: scroll;
   padding: 0 8px;
 }
@@ -131,11 +144,19 @@ export default {
   font-size: 18px;
   gap: 12px;
 
+  user-select: none;
+
   box-shadow: rgba(0, 0, 0, 0.1) 2px 4px 6px;
 
   cursor: pointer;
 }
 .note span:last-child {
   flex-shrink: 0;
+}
+.loader {
+  margin-top: 32px;
+}
+.note-loader {
+  display: flex;
 }
 </style>

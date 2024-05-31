@@ -27,13 +27,21 @@ export const monthNames = {
 }
 
 const MONTH_TYPE_PREVIOUS = "month-previous"
+const MONTH_TYPE_PREVIOUS_EVEN = "month-previous-even"
+const MONTH_TYPE_PREVIOUS_ODD = "month-previous-odd"
 const MONTH_TYPE_CURRENT = "month-current"
+const MONTH_TYPE_NEXT_EVEN = "month-next-even"
+const MONTH_TYPE_NEXT_ODD = "month-next-odd"
 const MONTH_TYPE_NEXT = "month-next"
 
 export const monthTypes = {
     MONTH_TYPE_PREVIOUS,
+    MONTH_TYPE_PREVIOUS_EVEN,
+    MONTH_TYPE_PREVIOUS_ODD,
     MONTH_TYPE_CURRENT,
     MONTH_TYPE_NEXT,
+    MONTH_TYPE_NEXT_EVEN,
+    MONTH_TYPE_NEXT_ODD,
 }
 
 const DAY_TYPE_PASSED = "day-passed"
@@ -47,3 +55,5 @@ export const dayTypes = {
 }
 
 export const MIN_NOTE_LENGTH = 5;
+
+export const VALIDATOR_LENGTH_MESSAGE = 'Длинна заметки не может быть меньше 5 символов';

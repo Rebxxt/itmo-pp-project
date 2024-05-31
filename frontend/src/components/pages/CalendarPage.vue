@@ -1,9 +1,11 @@
 <template>
   <div class="calendar">
+
     <div class="calendar-header">
       <h4 class="header-date">{{currentDate.toLocaleString('ru', options)}}</h4>
       <h4 class="header-date">{{selectedDay ? selectedDay.date.toLocaleString('ru', options) : ''}}</h4>
     </div>
+
     <div class="flex">
       <CalendarContent></CalendarContent>
       <NoteSidebar :selectedDay="selectedDay"></NoteSidebar>

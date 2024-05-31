@@ -1,10 +1,10 @@
 <template>
-  <p>asdf</p>
+  <p>asdffff</p>
 </template>
 
 <script>
 export default {
-  name: "AuthPage"
+  name: "ProfilePage"
 }
 </script>
 

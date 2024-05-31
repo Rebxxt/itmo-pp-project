@@ -1,21 +1,29 @@
 <template>
   <div>
-    <CalendarPage></CalendarPage>
+    <p>
+      <strong>Current route path:</strong> {{ $route.fullPath }}
+    </p>
+
+    <nav>
+      <RouterLink to="/calendar">Календарь</RouterLink>
+      <RouterLink to="/profile">Пользователь</RouterLink>
+      <RouterLink to="/auth">Авторизация</RouterLink>
+    </nav>
+
+    <RouterView />
   </div>
 </template>
 
 <script>
-import CalendarPage from "@/components/pages/CalendarPage.vue";
-
 export default {
   name: 'HelloWorld',
-  components: {CalendarPage},
-  props: {
-    msg: String
-  }
 }
 </script>
 
 <style scoped>
-
+nav {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
 </style>
