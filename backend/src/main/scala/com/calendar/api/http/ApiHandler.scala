@@ -6,8 +6,10 @@ import akka.http.scaladsl.server.Directive._
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.RouteConcatenation._
 import akka.http.scaladsl.server.directives.PathDirectives._
+import akka.http.scaladsl.settings.ServerSettings
 import api.SwaggerDocService
 import com.calendar.service.{AuthService, NoteService, UserService}
+import com.typesafe.config.ConfigFactory
 import zio.{Task, ZIO, ZLayer}
 
 class ApiHandler(
@@ -28,7 +30,13 @@ class ApiHandler(
 
   def run: Task[Unit] = {
     implicit val system: ActorSystem = ActorSystem("calendar")
-    Http().newServerAt("0.0.0.0", 8080).bind(route)
+    val customConf = """
+      akka.http.server.parsing.max-header-value-length=8192
+      akka.http.server.parsing.max-uri-length=8192
+    """ 
+
+    val customSettings = ServerSettings(customConf)
+    Http().newServerAt("0.0.0.0", 9090).withSettings(customSettings).bind(route)
     ZIO.never
   }
 }

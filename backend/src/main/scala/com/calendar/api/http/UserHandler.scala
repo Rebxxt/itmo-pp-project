@@ -28,7 +28,9 @@ class UserHandler(userService: UserService, alertBot: AlertBot)
     with JsonSupport
     with Handler {
 
-  override def route: Route = createUser ~ getUser ~ deleteUser
+  override def route: Route = addAccessControlHeaders {
+    preflightRequestHandler ~ createUser ~ getUser ~ deleteUser
+  }
 
   @POST
   @Operation(

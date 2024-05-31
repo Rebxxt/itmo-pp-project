@@ -11,13 +11,16 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{Content, Schema}
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import jakarta.ws.rs.{POST, Path}
+import akka.http.scaladsl.server.RouteConcatenation._
 
 @Path("/auth")
 class AuthHandler(authService: AuthService, alertBot: AlertBot)
     extends ZIOSupport
     with Handler {
 
-  override def route: Route = authenticateUser
+  override def route: Route = addAccessControlHeaders {
+    preflightRequestHandler ~ authenticateUser
+  }
 
   @POST
   @Operation(

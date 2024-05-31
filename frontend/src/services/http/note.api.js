@@ -6,7 +6,8 @@ export class NoteService {
         this.api = axios.create({
             baseURL: host,
             timeout: 1000,
-            headers: {'X-Custom-Header': 'foobar'}
+            "Access-Control-Allow-Origin": host,
+            "Access-Control-Allow-Methods": "POST,GET,PUT,DELETE,OPTIONS",
         });
     }
 
@@ -19,7 +20,7 @@ export class NoteService {
     }
 
     get(userId) {
-        return this.api.get(`note`, { params: { user_id: userId }})
+        return this.api.get(`note`, { params: { user_login: userId }})
     }
 
     delete(noteId) {
