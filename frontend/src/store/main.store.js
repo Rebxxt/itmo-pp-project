@@ -9,6 +9,7 @@ export default function initStore() {
                 noteChanges: null,
                 calendar: null,
                 notes: null,
+                user: null,
             }
         },
         mutations: {
@@ -27,6 +28,9 @@ export default function initStore() {
             },
             setNotes(state, notes) {
                 state.notes = notes;
+            },
+            setUser(state, user) {
+                state.user = user;
             },
         }
     })

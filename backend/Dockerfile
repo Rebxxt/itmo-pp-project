@@ -1,6 +1,8 @@
 #Dockerfile
 # First stage: SBT build
-FROM mozilla/sbt as builder
+# FOR AMD64 mozilla/sbt:8u292_1.5.7
+# FOR ARM64 mozilla/sbt
+FROM mozilla/sbt:8u292_1.5.7 as builder
 COPY . /app
 WORKDIR /app
 RUN sbt clean compile

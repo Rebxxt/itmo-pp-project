@@ -1,5 +1,7 @@
 <template>
-  <p>asdffff</p>
+  <div class="container">
+    <button>Удалить профиль</button>
+  </div>
 </template>
 
 <script>

@@ -54,6 +54,14 @@ export const dayTypes = {
     DAY_TYPE_FUTURE,
 }
 
+const AUTHORIZATION_TYPE_SIGN_IN = 'login'
+const AUTHORIZATION_TYPE_SIGN_UP = 'registration'
+
+export const authorizationTypes = {
+    AUTHORIZATION_TYPE_SIGN_IN,
+    AUTHORIZATION_TYPE_SIGN_UP,
+}
+
 export const MIN_NOTE_LENGTH = 5;
 
 export const VALIDATOR_LENGTH_MESSAGE = 'Длинна заметки не может быть меньше 5 символов';

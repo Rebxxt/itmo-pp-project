@@ -22,7 +22,7 @@ import PulseLoader from "vue-spinner/src/PulseLoader.vue";
 export default {
   name: 'CalendarDay',
   components: {PulseLoader},
-  inject: ['$noteService'],
+  inject: ['$noteApiService'],
   props: {
     id: Number,
     day: {
@@ -52,7 +52,7 @@ export default {
     },
     anyLoading() {
       return this.loadings > 0
-    }
+    },
   },
   methods: {
     onDrop() {
@@ -64,9 +64,15 @@ export default {
       const month = this.day.date.getMonth();
       const date = this.day.date.getDate();
       noteResult.createdAt = new Date(year, month, date)
-      console.log(noteResult)
-      this.$noteService.put(noteResult.text, noteResult.createdAt, noteResult.id).then((response) => {
-        this.$store.commit('onChangeNote', response)
+      this.$noteApiService.put(noteResult.text, noteResult.createdAt.valueOf(), noteResult.id).then((response) => {
+        const result = response.data
+        const note = {
+          text: result.text,
+          id: result.id,
+          createdAt: new Date(result.date)
+        }
+        console.log('on change note')
+        this.$store.commit('onChangeNote', note)
         this.loadings -= 1;
       })
     }

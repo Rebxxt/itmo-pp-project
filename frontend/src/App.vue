@@ -28,7 +28,8 @@ body {
   margin: 0 !important;
   padding: 0 !important;
 }
-.container {
-  margin: 0 8px;
+
+.link {
+  cursor: pointer;
 }
 </style>

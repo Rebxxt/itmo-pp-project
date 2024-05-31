@@ -42,7 +42,7 @@ import PulseLoader from 'vue-spinner/src/PulseLoader.vue'
 export default {
   name: 'NoteSidebar',
   components: {NoteCreator, PulseLoader},
-  inject: ['$noteService'],
+  inject: ['$noteApiService'],
   props: {
     selectedDay: {
       date: Date,
@@ -50,6 +50,7 @@ export default {
   },
   methods: {
     addNote(note) {
+      this.$noteApiService.post(note.text, note.createdAt.valueOf())
       if (this.selectedDay) {
         note.createdAt.setDate(this.selectedDay.date.getDate());
         note.createdAt.setMonth(this.selectedDay.date.getMonth());
@@ -75,10 +76,14 @@ export default {
     },
     initNotes() {
       this.loading = true;
-      this.$noteService.get('TODO_USER').then((response) => {
-        this.setNotes(response)
+      this.$noteApiService.get().then((response) => {
+        const result = response.data.map((v) => ({
+          createdAt: new Date(v.date),
+          text: v.text,
+          id: v.id,
+        }));
+        this.setNotes(result)
         this.loading = false;
-        console.log('response', response)
       })
     }
   },

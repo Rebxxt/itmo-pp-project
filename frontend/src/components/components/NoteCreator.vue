@@ -14,7 +14,6 @@
 
 <script>
 import {MIN_NOTE_LENGTH, VALIDATOR_LENGTH_MESSAGE} from "@/components/js/types";
-import {uuid} from "vue-uuid";
 
 export default {
   name: 'NoteCreator',
@@ -44,7 +43,6 @@ export default {
       }
       this.validator = null;
       const note = {
-        id: uuid.v4(), // TODO: remove after connect backend
         text: this.text,
         createdAt: (new Date(this.selectedDay?.date ?? new Date())),
       }

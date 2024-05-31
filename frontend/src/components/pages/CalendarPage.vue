@@ -56,7 +56,6 @@ export default {
   height: 100vh;
 }
 .calendar-header {
-  padding-top: 80px;
   display: flex;
   justify-content: space-between;
 }

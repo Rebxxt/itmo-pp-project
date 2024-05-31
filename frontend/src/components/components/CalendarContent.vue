@@ -121,16 +121,17 @@ export default {
 
       return calendar
     },
+    onDrop() {
+      this.updateNotesInfo()
+    },
     getDateFrom(date) {
       const startDate = new Date(date.getFullYear(), date.getMonth(), 1);
       const daysToMonday = (startDate.getDay() + 6) % 7 || 7;
-      console.log('get date from', date, startDate, daysToMonday)
       return new Date(date.getFullYear(), date.getMonth(), startDate.getDate() - daysToMonday);
     },
     getDateTo(date) {
       const startDate = new Date(date.getFullYear(), date.getMonth() + 1, 1);
       const daysToNextMonday = 7 - (startDate.getDay() + 6) % 7;
-      console.log('get date to', date, startDate, daysToNextMonday)
 
       return new Date(date.getFullYear(), date.getMonth() + 1, startDate.getDate() + daysToNextMonday);
     },
@@ -165,6 +166,11 @@ export default {
         })
         day.hasNotes = !!temp;
       }
+    },
+    findByDate(date) {
+      return this.calendar.find(v => {
+        if (isSameDate(v.date, date)) return v
+      })
     }
   },
   computed: {
