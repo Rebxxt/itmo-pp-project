@@ -1,18 +1,13 @@
 package com.calendar.api.http
 import akka.http.interop.ZIOSupport
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import akka.http.scaladsl.server.Directives.{
-  complete,
-  delete,
-  parameter,
-  pathEndOrSingleSlash,
-  post
-}
-import akka.http.scaladsl.server.{Directive1, Route}
+import akka.http.scaladsl.server.Directives.{complete, delete, options, parameter, pathEndOrSingleSlash, post, respondWithHeaders}
+import akka.http.scaladsl.server.{Directive0, Directive1, Route}
 import akka.http.scaladsl.server.directives.MethodDirectives.{get, put}
 import akka.http.interop.ZIOSupport
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import akka.http.scaladsl.server.Directives.{complete, parameter}
+import akka.http.scaladsl.model.{HttpMethods, StatusCodes}
+import akka.http.scaladsl.model.headers.{`Access-Control-Allow-Credentials`, `Access-Control-Allow-Headers`, `Access-Control-Allow-Methods`, `Access-Control-Allow-Origin`}
 import akka.http.scaladsl.server.RouteConcatenation._
 import akka.http.scaladsl.server.directives.PathDirectives._
 import akka.http.scaladsl.server.directives.PathDirectives.pathPrefix
@@ -26,6 +21,10 @@ import io.swagger.v3.oas.annotations.media.{Content, Schema}
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import jakarta.ws.rs.{DELETE, GET, POST, PUT, Path}
 import spray.json.{DefaultJsonProtocol, RootJsonFormat}
+import akka.http.scaladsl.model.HttpResponse
+
+
+
 
 @Path("/note")
 class NoteHandler(
@@ -36,7 +35,9 @@ class NoteHandler(
     with Handler {
 
   override def route: Route =
-    createNote ~ getUserNotes ~ deleteNote ~ updateNote
+    addAccessControlHeaders {
+      preflightRequestHandler ~ createNote ~ getUserNotes ~ deleteNote ~ updateNote
+    }
 
   @POST
   @Operation(
