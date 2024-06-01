@@ -304,7 +304,7 @@ export default {
 
 .footer {
   display: flex;
-  justify-content: space-between;
+  justify-content: end;
   align-items: center;
 }
 .v-enter-active,
