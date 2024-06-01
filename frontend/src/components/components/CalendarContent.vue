@@ -1,5 +1,14 @@
 <template>
   <div class="calendar-content">
+    <h4 class="date">
+      {{
+        selectedMonth?.toLocaleString('ru', {
+          year: "numeric",
+          month: "long",
+        })
+      }}
+    </h4>
+
     <div class="calendar-body" v-if="calendar">
       <CalendarDay
           v-for="(day, index) in calendar"
@@ -9,36 +18,26 @@
       ></CalendarDay>
     </div>
 
-    <h4>
-      {{
-        selectedMonth?.toLocaleString('ru', {
-          year: "numeric",
-          month: "long",
-        })
-      }}
-    </h4>
+    <div class="selector buttons-changer">
+      <button class="back-orange" @click="onChangeYear(-1)">—год</button>
+      <button class="back-yellow" @click="onChangeMonth(-1)">—месяц</button>
+      <button class="back-green" @click="onChangeMonth(0)">Текущий месяц</button>
+      <button class="back-yellow" @click="onChangeMonth(1)">+месяц</button>
+      <button class="back-orange" @click="onChangeYear(1)">+год</button>
+    </div>
 
-    <div class="buttons">
-      <div class="selector">
-        <b>Режим отображения: </b>
-        <button>Текущий месяц</button>
-        <button>Текущая неделя</button>
-        <button>Текущий день</button>
-      </div>
-
-      <div class="selector">
-        <b>Смена просматриваемой даты: </b>
-        <button @click="onChangeYear(-1)">Прошлый год</button>
-        <button @click="onChangeMonth(-1)">Прошлый месяц</button>
-        <button @click="onChangeMonth(0)">Сегодняшний день</button>
-        <button @click="onChangeMonth(1)">Следующий месяц</button>
-        <button @click="onChangeYear(1)">Следующий год</button>
-      </div>
-
-
-      <div class="selector">
-        <button @click="onSelectDay(null)">Сбросить выбранное</button>
-      </div>
+    <div class="footer">
+      <Transition>
+        <div
+            class="drop-delete"
+            v-if="selectedNote"
+            @drop.prevent="onDrop"
+            @dragenter.prevent
+            @dragover.prevent
+        >
+          <b>Удалить</b>
+        </div>
+      </Transition>
     </div>
   </div>
 </template>
@@ -51,6 +50,10 @@ import {dateDiff, isSameDate} from "@/components/js/utils";
 export default {
   name: 'CalendarContent',
   components: {CalendarDay},
+  inject: ['$noteApiService'],
+  props: {
+    deleteNote: Function,
+  },
   data() {
     return {
       selectedMonth: new Date(),
@@ -122,7 +125,11 @@ export default {
       return calendar
     },
     onDrop() {
-      this.updateNotesInfo()
+      console.log('on drop', this.$store.state.selectedNote.id, this.$store.state.selectedNote.text )
+      const noteToDelete = this.$store.state.selectedNote.id;
+      this.$noteApiService.delete(noteToDelete).then(() => {
+        this.deleteNote(noteToDelete)
+      })
     },
     getDateFrom(date) {
       const startDate = new Date(date.getFullYear(), date.getMonth(), 1);
@@ -178,6 +185,7 @@ export default {
       return this.$store.state.selectedNote;
     },
     notes() {
+      this.updateNotesInfo()
       return this.$store.state.notes
     }
   },
@@ -195,6 +203,18 @@ export default {
 </script>
 
 <style scoped>
+.drop-delete {
+  height: 100px;
+  width: 150px;
+  border: 4px solid #fd6363;
+  border-radius: 8px;
+  background: #ffc8c8;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
 .calendar-body {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -213,12 +233,88 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: end;
+  margin-top: 32px;
+}
+.buttons button {
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 16px;
+}
+.buttons-changer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0 !important;
+}
+.buttons-changer button {
+  flex: 1;
+  border: none;
+  padding: 8px 16px;
+  font-size: 16px;
+  transition: 0.5s;
+  cursor: pointer;
+}
+.buttons-changer button:hover {
+
+}
+.buttons-changer button:first-child {
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
+}
+.buttons-changer button:last-child {
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
 }
 
 .selector {
   margin-bottom: 16px;
   display: flex;
   gap: 4px;
+}
+
+.date {
+  font-size: 22px;
+  margin: 0;
+}
+.date:first-letter {
+  text-transform: capitalize;
+}
+
+.back-green {
+  background: #aff169;
+}
+.back-green:hover {
+  background: #d3ffa3;
+}
+
+.back-yellow {
+  background: #ffe226;
+}
+.back-yellow:hover {
+  background: #ffee8e;
+}
+
+.back-orange {
+  background: #ffc226;
+}
+.back-orange:hover {
+  background: #ffda78;
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.v-enter-active,
+.v-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.v-enter-from,
+.v-leave-to {
+  opacity: 0;
 }
 </style>
 

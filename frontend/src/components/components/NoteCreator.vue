@@ -6,7 +6,7 @@
           placeholder="Сделать домашнее задание..."
           :disabled="loading"
       >
-      <button type="submit" :disabled="loading">Добавить</button>
+      <button type="submit" :disabled="loading"><b>Добавить</b></button>
     </form>
     <p class="validator" v-if="validator">{{validator}}</p>
   </div>
@@ -57,7 +57,6 @@ export default {
 form {
   display: flex;
   justify-content: space-between;
-  gap: 8px;
 }
 input {
   flex: 1;
@@ -66,5 +65,27 @@ input {
 }
 .validator {
   color: red;
+}
+
+button {
+  border: 1px solid #bdbdbd;
+  transition: 0.2s;
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
+  padding: 8px 16px;
+}
+input {
+  border-left: 1px solid #bdbdbd;
+  border-right: none;
+  border-top: 1px solid #bdbdbd;
+  border-bottom: 1px solid #bdbdbd;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
+}
+input:focus {
+  outline: none;
 }
 </style>

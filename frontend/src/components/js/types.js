@@ -62,6 +62,20 @@ export const authorizationTypes = {
     AUTHORIZATION_TYPE_SIGN_UP,
 }
 
+export const DATE_OPTIONS = {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+}
+
+export const DATE_FULL_OPTIONS = {
+    ...DATE_OPTIONS,
+    hour: 'numeric',
+    minute: 'numeric',
+    second: 'numeric',
+}
+
 export const MIN_NOTE_LENGTH = 5;
 
 export const VALIDATOR_LENGTH_MESSAGE = 'Длинна заметки не может быть меньше 5 символов';

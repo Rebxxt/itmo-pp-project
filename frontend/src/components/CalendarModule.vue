@@ -14,6 +14,12 @@
           </li>
         </ul>
       </nav>
+
+      <div class="selected-day" v-if="selectedDay">
+        <h4 class="header-date">{{ selectedDay.date.toLocaleString('ru', dateOptions) }}</h4>
+      </div>
+
+      <h4 class="header-date">{{ currentDate.toLocaleString('ru', dateFullOptions) }}</h4>
     </header>
 
     <section class="content">
@@ -23,9 +29,18 @@
 </template>
 
 <script>
+import {DATE_OPTIONS, DATE_FULL_OPTIONS} from "@/components/js/types";
+
 export default {
-  name: 'HelloWorld',
-  inject: ['$authService'],
+  name: 'CalendarModule',
+  inject: ['$authService', '$authApiService'],
+  data() {
+    return {
+      currentDate: new Date(),
+      dateOptions: DATE_OPTIONS,
+      dateFullOptions: DATE_FULL_OPTIONS
+    }
+  },
   methods: {
     logout() {
       this.$authService.clearData();
@@ -35,8 +50,21 @@ export default {
   computed: {
     hasAuthorization() {
       return !!this.$authService.getUser() || this.$store.state.user
-    }
+    },
+    selectedDay() {
+      return this.$store.state.selectedDay
+    },
   },
+  mounted() {
+    if (this.$authService.getUser()) {
+      this.$authApiService.get().then((response) => {
+        if (!response.data) {
+          this.$authService.clearData();
+          this.$router.push('/authorization')
+        }
+      })
+    }
+  }
 }
 </script>
 
@@ -45,14 +73,15 @@ nav {
   display: flex;
   justify-content: center;
   gap: 8px;
-  margin-bottom: 40px;
-}
-.top {
-  padding-top: 80px;
+  margin: 16px 0;
 }
 
 .content {
   margin: 0 16px;
+}
+
+.header-date:first-letter {
+  text-transform: capitalize;
 }
 
 header {
@@ -62,6 +91,7 @@ header {
   padding: 10px 20px;
   background-color: #333;
   color: white;
+  margin-bottom: 32px;
 }
 
 .logo img {
@@ -86,4 +116,13 @@ nav .nav-links a {
 nav .nav-links a:hover {
   color: #1e73be;
 }
+
+.selected-day {
+  margin: 0;
+  font-size: 26px;
+}
+.selected-day h4 {
+  margin: 8px 0;
+}
+
 </style>

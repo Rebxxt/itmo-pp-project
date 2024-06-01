@@ -36,7 +36,6 @@
 
 <script>
 import NoteCreator from "@/components/components/NoteCreator.vue";
-import {ref} from "vue";
 import PulseLoader from 'vue-spinner/src/PulseLoader.vue'
 
 export default {
@@ -44,21 +43,15 @@ export default {
   components: {NoteCreator, PulseLoader},
   inject: ['$noteApiService'],
   props: {
-    selectedDay: {
-      date: Date,
-    },
+    loading: Boolean,
+    addNote: Function,
+  },
+  data() {
+    return {
+      selectedNoteToDrag: null,
+    }
   },
   methods: {
-    addNote(note) {
-      this.$noteApiService.post(note.text, note.createdAt.valueOf())
-      if (this.selectedDay) {
-        note.createdAt.setDate(this.selectedDay.date.getDate());
-        note.createdAt.setMonth(this.selectedDay.date.getMonth());
-        note.createdAt.setYear(this.selectedDay.date.getFullYear());
-      }
-      this.notes.push(note);
-      this.setNotes(this.notes);
-    },
     onClickNote(note) {
       console.log('clicked on note:', note)
     },
@@ -70,22 +63,6 @@ export default {
       this.selectedNoteToDrag = null;
       this.$store.commit('onSelectedNote', this.selectedNoteToDrag)
     },
-    setNotes(notes) {
-      this.notes = [...notes].map(v => ({...v, loading: ref(false)}));
-      this.$store.commit('setNotes', this.notes)
-    },
-    initNotes() {
-      this.loading = true;
-      this.$noteApiService.get().then((response) => {
-        const result = response.data.map((v) => ({
-          createdAt: new Date(v.date),
-          text: v.text,
-          id: v.id,
-        }));
-        this.setNotes(result)
-        this.loading = false;
-      })
-    }
   },
   computed: {
     filteredNotes() {
@@ -99,31 +76,13 @@ export default {
       }
       return reversed
     },
-    noteChanges() {
-      return this.$store.state.noteChanges
+    selectedDay() {
+      return this.$store.state.selectedDay
+    },
+    notes() {
+      return this.$store.state.notes
     },
   },
-  watch: {
-    noteChanges(newNote) {
-      if (newNote) {
-        const note = this.notes.find(v => v.id === newNote.id);
-        note.loading = false;
-        Object.assign(note, newNote);
-        this.$store.commit('onChangeNote', null);
-      }
-    }
-  },
-  created() {
-    // todo
-    this.initNotes()
-  },
-  data() {
-    return {
-      selectedNoteToDrag: null,
-      notes: [],
-      loading: true,
-    }
-  }
 }
 </script>
 

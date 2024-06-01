@@ -1,16 +1,16 @@
 <template>
   <div class="container">
-    <HelloWorld />
+    <CalendarModule />
   </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+import CalendarModule from './components/CalendarModule.vue'
 
 export default {
   name: 'App',
   components: {
-    HelloWorld
+    CalendarModule
   }
 }
 </script>

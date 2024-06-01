@@ -1,12 +1,21 @@
 <template>
   <div class="container">
-    <button>Удалить профиль</button>
+    <button @click="deleteUser">Удалить профиль</button>
   </div>
 </template>
 
 <script>
 export default {
-  name: "ProfilePage"
+  name: "ProfilePage",
+  inject: ['$authService', '$authApiService'],
+  methods: {
+    deleteUser() {
+      this.$authApiService.delete().then(() => {
+        this.$router.push('/authorization')
+        this.$authService.clearData()
+      })
+    }
+  }
 }
 </script>
 
