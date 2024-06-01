@@ -11,12 +11,12 @@ class UserService(transactor: Transactor[Task], authService: AuthService) {
 
   def createUser(userSource: UserSource): Task[User] = {
     for {
+      user <- runTransaction(
+        UserDaoImpl.addUser(User.fromUserSource(userSource))
+      )
       _ <- authService.createAuth(
         userLogin = userSource.login,
         password = userSource.password
-      )
-      user <- runTransaction(
-        UserDaoImpl.addUser(User.fromUserSource(userSource))
       )
     } yield user
   }
