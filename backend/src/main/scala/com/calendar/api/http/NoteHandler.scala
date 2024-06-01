@@ -1,13 +1,26 @@
 package com.calendar.api.http
 import akka.http.interop.ZIOSupport
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import akka.http.scaladsl.server.Directives.{complete, delete, options, parameter, pathEndOrSingleSlash, post, respondWithHeaders}
+import akka.http.scaladsl.server.Directives.{
+  complete,
+  delete,
+  options,
+  parameter,
+  pathEndOrSingleSlash,
+  post,
+  respondWithHeaders
+}
 import akka.http.scaladsl.server.{Directive0, Directive1, Route}
 import akka.http.scaladsl.server.directives.MethodDirectives.{get, put}
 import akka.http.interop.ZIOSupport
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.model.{HttpMethods, StatusCodes}
-import akka.http.scaladsl.model.headers.{`Access-Control-Allow-Credentials`, `Access-Control-Allow-Headers`, `Access-Control-Allow-Methods`, `Access-Control-Allow-Origin`}
+import akka.http.scaladsl.model.headers.{
+  `Access-Control-Allow-Credentials`,
+  `Access-Control-Allow-Headers`,
+  `Access-Control-Allow-Methods`,
+  `Access-Control-Allow-Origin`
+}
 import akka.http.scaladsl.server.RouteConcatenation._
 import akka.http.scaladsl.server.directives.PathDirectives._
 import akka.http.scaladsl.server.directives.PathDirectives.pathPrefix
@@ -22,9 +35,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import jakarta.ws.rs.{DELETE, GET, POST, PUT, Path}
 import spray.json.{DefaultJsonProtocol, RootJsonFormat}
 import akka.http.scaladsl.model.HttpResponse
-
-
-
+import zio.ZIO
 
 @Path("/note")
 class NoteHandler(
@@ -74,7 +85,26 @@ class NoteHandler(
   def createNote: Route =
     (post & WithText & WithUserLogin & WithDate & pathEndOrSingleSlash) {
       (text, userLogin, date) =>
-        complete(noteService.addNote(NoteSource(text, userLogin, date)))
+        complete(
+          noteService
+            .addNote(NoteSource(text, userLogin, date))
+            .tapError(t =>
+              alertBot
+                .alert(
+                  s"ALERT: Exception occurred while running NoteHandler.createNote, message: ${t.getMessage}"
+                )
+            )
+            .tapBoth(
+              t =>
+                ZIO.logError(
+                  s"NoteHandler.createNote($text, $userLogin, $date) failed with ${t.getMessage}"
+                ),
+              value =>
+                ZIO.logInfo(
+                  s"NoteHandler.createNote($text, $userLogin, $date) completed with $value"
+                )
+            )
+        )
     }
 
   @PUT
@@ -121,9 +151,26 @@ class NoteHandler(
     (put & WithNoteId & WithText & WithUserLogin & WithDate & pathEndOrSingleSlash) {
       (noteId, text, userLogin, date) =>
         complete(
-          noteService.updateNote(
-            Note(id = noteId, text = text, userLogin = userLogin, date = date)
-          )
+          noteService
+            .updateNote(
+              Note(id = noteId, text = text, userLogin = userLogin, date = date)
+            )
+            .tapError(t =>
+              alertBot
+                .alert(
+                  s"ALERT: Exception occurred while running NoteHandler.updateNote, message: ${t.getMessage}"
+                )
+            )
+            .tapBoth(
+              t =>
+                ZIO.logError(
+                  s"NoteHandler.updateNote($noteId, $text, $userLogin, $date) failed with ${t.getMessage}"
+                ),
+              value =>
+                ZIO.logInfo(
+                  s"NoteHandler.updateNote($noteId, $text, $userLogin, $date) completed with $value"
+                )
+            )
         )
     }
 
@@ -145,7 +192,26 @@ class NoteHandler(
   @ApiResponse(responseCode = "200", description = "List of user notes")
   def getUserNotes: Route = (get & WithUserLogin & pathEndOrSingleSlash) {
     userLogin =>
-      complete(noteService.getUserNotes(userLogin = userLogin))
+      complete(
+        noteService
+          .getUserNotes(userLogin = userLogin)
+          .tapError(t =>
+            alertBot
+              .alert(
+                s"ALERT: Exception occurred while running NoteHandler.getUserNotes, message: ${t.getMessage}"
+              )
+          )
+          .tapBoth(
+            t =>
+              ZIO.logError(
+                s"NoteHandler.getUserNotes($userLogin) failed with ${t.getMessage}"
+              ),
+            value =>
+              ZIO.logInfo(
+                s"NoteHandler.getUserNotes($userLogin) completed with $value"
+              )
+          )
+      )
   }
 
   @DELETE
@@ -165,7 +231,28 @@ class NoteHandler(
   )
   @ApiResponse(responseCode = "200", description = "OK if note was deleted")
   def deleteNote: Route = (delete & WithNoteId & pathEndOrSingleSlash) {
-    noteId => complete(noteService.deleteNode(noteId).as("OK"))
+    noteId =>
+      complete(
+        noteService
+          .deleteNode(noteId)
+          .as("OK")
+          .tapError(t =>
+            alertBot
+              .alert(
+                s"ALERT: Exception occurred while running NoteHandler.deleteNote, message: ${t.getMessage}"
+              )
+          )
+          .tapBoth(
+            t =>
+              ZIO.logError(
+                s"NoteHandler.deleteNote($noteId) failed with ${t.getMessage}"
+              ),
+            value =>
+              ZIO.logInfo(
+                s"NoteHandler.deleteNote($noteId) completed with $value"
+              )
+          )
+      )
   }
 
   private val WithText: Directive1[String] = parameter(

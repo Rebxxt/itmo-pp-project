@@ -8,13 +8,13 @@ object SwaggerDocService extends SwaggerHttpWithUiService {
   override val apiClasses: Set[Class[_]] =
     Set(classOf[NoteHandler], classOf[UserHandler], classOf[AuthHandler])
   override val host: String =
-    "0.0.0.0:8080" // Ensure this matches your actual host and port
+    "0.0.0.0:9090" // Ensure this matches your actual host and port
   override val schemes: List[String] = List("http")
   override def apiDocsPath: String = "docs"
 
   override val info: Info = Info(
-    title = "Forecast Project Api",
+    title = "Calendar Project Api",
     version = "1.0",
-    description = "API documentation for the Forecast Project Api"
+    description = "API documentation for the Calendar Project Api"
   )
 }
