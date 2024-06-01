@@ -26,10 +26,15 @@ package object storage {
     }
   }
 
+  private def filterSqlSchema(sqlSchema: String): String = {
+    sqlSchema.substring(sqlSchema.toLowerCase.indexOf("create table"))
+  }
+
   def initSchema(path: String, transactor: Transactor[Task]): Task[Unit] =
     for {
       schema <- readSql(path)
-      _ <- runTransaction(Update0(schema, None).run)(transactor)
+      filteredSchema = filterSqlSchema(schema)
+      _ <- runTransaction(Update0(filteredSchema, None).run)(transactor)
     } yield ()
 
   def prepareContainer: ZIO[Any, Throwable, Transactor[Task]] = {

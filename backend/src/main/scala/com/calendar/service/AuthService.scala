@@ -37,7 +37,7 @@ class AuthService(transactor: Transactor[Task]) {
 }
 
 object AuthService {
-  private def hashString(password: String): String = {
+  def hashString(password: String): String = {
     val hashedPassword =
       MessageDigest.getInstance("MD5").digest(password.getBytes)
     hashedPassword.map("%02x".format(_)).mkString

@@ -21,6 +21,7 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{Content, Schema}
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import jakarta.ws.rs.{DELETE, GET, POST, Path}
+import zio.ZIO
 
 @Path("/user")
 class UserHandler(userService: UserService, alertBot: AlertBot)
@@ -60,9 +61,26 @@ class UserHandler(userService: UserService, alertBot: AlertBot)
     (post & WithUserLogin & WithPassword & pathEndOrSingleSlash) {
       (userLogin, password) =>
         complete(
-          userService.createUser(
-            UserSource(login = userLogin, password = password)
-          )
+          userService
+            .createUser(
+              UserSource(login = userLogin, password = password)
+            )
+            .tapError(t =>
+              alertBot
+                .alert(
+                  s"ALERT: Exception occurred while running UserHandler.createUser, message: ${t.getMessage}"
+                )
+            )
+            .tapBoth(
+              t =>
+                ZIO.logError(
+                  s"UserHandler.createUser($userLogin, $password) failed with ${t.getMessage}"
+                ),
+              value =>
+                ZIO.logInfo(
+                  s"UserHandler.createUser($userLogin, $password) completed with $value"
+                )
+            )
         )
     }
 
@@ -84,7 +102,26 @@ class UserHandler(userService: UserService, alertBot: AlertBot)
   @ApiResponse(responseCode = "200", description = "User")
   def getUser: Route =
     (get & WithUserLogin & pathEndOrSingleSlash) { userLogin =>
-      complete(userService.getUser(userLogin = userLogin))
+      complete(
+        userService
+          .getUser(userLogin = userLogin)
+          .tapError(t =>
+            alertBot
+              .alert(
+                s"ALERT: Exception occurred while running UserHandler.getUser, message: ${t.getMessage}"
+              )
+          )
+          .tapBoth(
+            t =>
+              ZIO.logError(
+                s"UserHandler.getUser($userLogin) failed with ${t.getMessage}"
+              ),
+            value =>
+              ZIO.logInfo(
+                s"UserHandler.getUser($userLogin) completed with $value"
+              )
+          )
+      )
     }
 
   @DELETE
@@ -105,7 +142,27 @@ class UserHandler(userService: UserService, alertBot: AlertBot)
   @ApiResponse(responseCode = "200", description = "OK if user was deleted")
   def deleteUser: Route =
     (delete & WithUserLogin & pathEndOrSingleSlash) { userLogin =>
-      complete(userService.deleteUser(userLogin = userLogin).as("OK"))
+      complete(
+        userService
+          .deleteUser(userLogin = userLogin)
+          .as("OK")
+          .tapError(t =>
+            alertBot
+              .alert(
+                s"ALERT: Exception occurred while running UserHandler.deleteUser, message: ${t.getMessage}"
+              )
+          )
+          .tapBoth(
+            t =>
+              ZIO.logError(
+                s"UserHandler.deleteUser($userLogin) failed with ${t.getMessage}"
+              ),
+            value =>
+              ZIO.logInfo(
+                s"UserHandler.deleteUser($userLogin) completed with $value"
+              )
+          )
+      )
     }
 
   private val WithUserLogin: Directive1[String] = parameter(

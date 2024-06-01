@@ -11,12 +11,12 @@ class UserService(transactor: Transactor[Task], authService: AuthService) {
 
   def createUser(userSource: UserSource): Task[User] = {
     for {
+      user <- runTransaction(
+        UserDaoImpl.addUser(User.fromUserSource(userSource))
+      )
       _ <- authService.createAuth(
         userLogin = userSource.login,
         password = userSource.password
-      )
-      user <- runTransaction(
-        UserDaoImpl.addUser(User.fromUserSource(userSource))
       )
     } yield user
   }
@@ -25,9 +25,13 @@ class UserService(transactor: Transactor[Task], authService: AuthService) {
     UserDaoImpl.getUser(userLogin)
   )
 
-  def deleteUser(userLogin: String): Task[Unit] = runTransaction(
-    UserDaoImpl.deleteUser(userLogin)
-  )
+  def deleteUser(userLogin: String): Task[Unit] =
+    for {
+      _ <- authService.deleteAuth(userLogin)
+      _ <- runTransaction(
+        UserDaoImpl.deleteUser(userLogin)
+      )
+    } yield ()
 
 }
 
