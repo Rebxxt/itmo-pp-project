@@ -25,9 +25,13 @@ class UserService(transactor: Transactor[Task], authService: AuthService) {
     UserDaoImpl.getUser(userLogin)
   )
 
-  def deleteUser(userLogin: String): Task[Unit] = runTransaction(
-    UserDaoImpl.deleteUser(userLogin)
-  )
+  def deleteUser(userLogin: String): Task[Unit] =
+    for {
+      _ <- authService.deleteAuth(userLogin)
+      _ <- runTransaction(
+        UserDaoImpl.deleteUser(userLogin)
+      )
+    } yield ()
 
 }
 

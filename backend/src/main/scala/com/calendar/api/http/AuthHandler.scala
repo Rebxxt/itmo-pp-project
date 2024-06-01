@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.media.{Content, Schema}
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import jakarta.ws.rs.{POST, Path}
 import akka.http.scaladsl.server.RouteConcatenation._
+import zio.ZIO
 
 @Path("/auth")
 class AuthHandler(authService: AuthService, alertBot: AlertBot)
@@ -56,6 +57,22 @@ class AuthHandler(authService: AuthService, alertBot: AlertBot)
           authService
             .authenticateUser(userLogin = userLogin, password = password)
             .map(_.toString)
+            .tapError(t =>
+              alertBot
+                .alert(
+                  s"ALERT: Exception occurred while running AuthHandler.authenticateUser  , message: ${t.getMessage}"
+                )
+            )
+            .tapBoth(
+              t =>
+                ZIO.logError(
+                  s"AuthHandler.authenticateUser($userLogin, $password) failed with ${t.getMessage}"
+                ),
+              value =>
+                ZIO.logInfo(
+                  s"AuthHandler.authenticateUser($userLogin, $password) completed with $value"
+                )
+            )
         )
     }
 
