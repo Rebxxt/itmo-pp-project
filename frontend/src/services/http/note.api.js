@@ -1,30 +1,28 @@
 const axios = require('axios')
 
 export class NoteApiService {
-    constructor(host, authService) {
+    constructor(host) {
         this.api = axios.create({
             baseURL: host,
             timeout: 1000,
             "Access-Control-Allow-Origin": host,
             "Access-Control-Allow-Methods": "POST,GET,PUT,DELETE,OPTIONS",
         });
-
-        this.authService = authService;
     }
 
-    post(text, date) {
-        return this.api.post(`note`, {}, { params: { user_login: this.authService.getUser(), text, date }})
+    post(note, date) {
+        return this.api.post(`note`, { note, date })
     }
 
-    put(text, date, noteId) {
-        return this.api.put(`note`, {}, { params: { note_id: noteId, text, date, user_login: this.authService.getUser() }})
+    put(note, date, noteId) {
+        return this.api.put(`note`, { id: noteId, note, date })
     }
 
     get() {
-        return this.api.get(`note`, { params: { user_login: this.authService.getUser() }})
+        return this.api.get(`all_notes`)
     }
 
     delete(noteId) {
-        return this.api.delete(`note`, { params: { note_id: noteId }})
+        return this.api.delete(`note`, { params: { id: noteId }})
     }
 }

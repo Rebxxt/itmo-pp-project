@@ -17,6 +17,15 @@ services:
       - POSTGRES_USER=admin
     ports:
       - "5432:5432"
+  notes-db:
+    image: postgres
+    hostname: notes-db
+    container_name: notes-db
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+    ports:
+      - "6102:5432"
   backend:
     container_name: backend
     build:

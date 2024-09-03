@@ -28,7 +28,7 @@ export default {
       this.$noteApiService.get().then((response) => {
         this.notes = response.data.map((v) => ({
           createdAt: new Date(v.date),
-          text: v.text,
+          text: v.note,
           id: v.id,
         }));
         this.setNotes(this.notes)

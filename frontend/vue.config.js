@@ -4,11 +4,14 @@ module.exports = defineConfig({
     devServer: {
         liveReload: true,
         proxy: {
-            '^/api/*': {
-                target: 'http://127.0.0.1:9090/',
-                changeOrigin: true,
-                pathRewrite: {'^/api' : ''},
+          "/api": {
+            "target": "http://localhost:8989",
+            "secure": false,
+            "pathRewrite": {
+              "^/api": ""
             },
+            "changeOrigin": true
+          }
         },
     }
 })

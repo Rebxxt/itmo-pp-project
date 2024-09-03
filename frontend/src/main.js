@@ -14,10 +14,10 @@ import App from './App.vue'
 
 const store = initStore();
 
-const backendHost = "http://localhost:9090/"
+const backendHost = "api"
 const authService = new AuthService(store)
 const authApiService = new AuthApiService(backendHost, authService)
-const noteApiService = new NoteApiService(backendHost, authService)
+const noteApiService = new NoteApiService(backendHost)
 
 const routes = [
     { path: '/:pathMatch(.*)*', name: 'NotFound', component: NotFoundPage },

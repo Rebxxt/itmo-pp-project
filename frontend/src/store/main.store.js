@@ -20,6 +20,7 @@ export default function initStore() {
                 state.selectedNote = note;
             },
             onChangeNote(state, note) {
+              console.log('CHANGE STATE NOTE', note)
                 state.noteChanges = note;
             },
             setCalendar(state, calendar) {

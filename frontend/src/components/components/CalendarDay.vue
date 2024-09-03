@@ -67,11 +67,11 @@ export default {
       this.$noteApiService.put(noteResult.text, noteResult.createdAt.valueOf(), noteResult.id).then((response) => {
         const result = response.data
         const note = {
-          text: result.text,
+          text: result.note,
           id: result.id,
           createdAt: new Date(result.date)
         }
-        console.log('on change note')
+        console.log('on change note', note)
         this.$store.commit('onChangeNote', note)
         this.loadings -= 1;
       })

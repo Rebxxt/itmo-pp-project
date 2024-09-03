@@ -11,11 +11,15 @@ export class AuthApiService {
     }
 
     auth(login, password) {
-        return this.api.post(`auth`, {}, { params: { user_login: login, password: password }})
+        return this.api.post(`signin`, { username: login, password: password })
+    }
+
+    refresh() {
+        return this.api.post(`refresh`)
     }
 
     get() {
-        return this.api.get(`user`, { params: { user_login: this.authService.getUser() }})
+        return this.api.get(`user`)
     }
 
     create(login, password) {
